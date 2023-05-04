@@ -1,0 +1,14 @@
+{
+    "lang": "la",
+    "author": "Patrick J. Burns; with Nora Bernhardt [ner], Tim Geelhaar [tagger, morphologizer, parser, ner], Vincent Koch [ner]",
+    "email": "pjb311@nyu.edu",
+    "url": "https://diyclassics.github.io/",
+    "license": "MIT",
+    "sources": [
+        "UD_Latin-Perseus",
+        "UD_Latin-PROIEL",
+        "UD_Latin-ITTB",
+        "UD_Latin-LLCT",
+        "UD_Latin-UDante"
+    ]
+}
