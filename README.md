@@ -74,7 +74,7 @@ nlp = spacy.load("la_core_web_lg")
 ## Model repository
 
 - The model itself can be found here:
-    - https://huggingface.co/diyclassics/la_core_web_lg
+    - https://huggingface.co/latincy/la_core_web_lg
 
 ## Current version
 
