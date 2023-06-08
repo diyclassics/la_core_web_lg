@@ -42,7 +42,7 @@ inputs have changed.
 
 | Workflow | Steps |
 | --- | --- |
-| `all` | `assemble` &rarr; `assemble-meta` &rarr; `package` &rarr; `document` |
+| `all` | `assets` &rarr; `preprocess` &rarr; `convert` &rarr; `norm-corpus` &rarr; `init-labels` &rarr; `train` &rarr; `evaluate` &rarr; `convert-ner` &rarr; `train-ner` &rarr; `assemble` &rarr; `assemble-meta` &rarr; `package` &rarr; `document` &rarr; `clean` |
 
 ### 🗂 Assets
 
