@@ -58,20 +58,20 @@ assets:
 
 workflows:
   all:
-    - assets 
-    - preprocess 
-    - convert 
-    - norm-corpus    
-    - init-labels
-    - train
-    - evaluate
-    - convert-ner
-    - train-ner
+    # - assets 
+    # - preprocess 
+    # - convert 
+    # - norm-corpus    
+    # - init-labels
+    # - train
+    # - evaluate
+    # - convert-ner
+    # - train-ner
     - assemble
     - assemble-meta
     - package
     - document    
-    - clean
+    # - clean
 
 commands:
   - name: assets
@@ -325,7 +325,7 @@ commands:
       - "training/model-best"
 
   - name: evaluate
-    help: "Evaluate md model on the test data and save the metrics"
+    help: "Evaluate model on the test data and save the metrics"
     script:
       - >-
         python -m spacy evaluate 
@@ -362,10 +362,10 @@ commands:
       - "corpus/ner/train/herodotos_ner_dev.spacy"
 
   - name: train-ner
-    help: "Train the NER model for the md model"
+    help: "Train the NER model for the model"
     script:
       - "mkdir -p training/ner"
-      - "python -m spacy train configs/ner_config.cfg --output training/ner --paths.train corpus/ner/train --paths.dev corpus/ner/dev --training.eval_frequency 10 --training.patience 50 --gpu-id ${vars.gpu} --code scripts/functions.py --initialize.vectors training/model-best"
+      - "python -m spacy train configs/ner_config.cfg --output training/ner --paths.train corpus/ner/train --paths.dev corpus/ner/dev --training.eval_frequency 10 --training.patience 100 --gpu-id ${vars.gpu} --code scripts/functions.py --initialize.vectors training/model-best"
     deps:
       - "configs/ner_config.cfg"
       - "corpus/ner/train"
@@ -393,7 +393,7 @@ commands:
       - "python scripts/assemble_meta.py --dep_meta training/model-best/meta.json --ner_meta training/ner/model-best/meta.json --assembled_meta training/model-assembled/meta.json"
 
   - name: package
-    help: "Package the trained md core model"
+    help: "Package the trained core model"
     script:
       - >-
         python -m spacy package 
