@@ -42,7 +42,7 @@ inputs have changed.
 
 | Workflow | Steps |
 | --- | --- |
-| `all` | `assets` &rarr; `preprocess` &rarr; `convert` &rarr; `norm-corpus` &rarr; `init-labels` &rarr; `train` &rarr; `evaluate` &rarr; `convert-ner` &rarr; `train-ner` &rarr; `assemble` &rarr; `assemble-meta` &rarr; `package` &rarr; `document` &rarr; `clean` |
+| `all` | `assets` &rarr; `preprocess` &rarr; `convert` &rarr; `norm-corpus` &rarr; `init-labels` &rarr; `train` &rarr; `evaluate` &rarr; `convert-ner` &rarr; `train-ner` &rarr; `assemble` &rarr; `assemble-meta` &rarr; `package` &rarr; `document` |
 
 ### 🗂 Assets
 
@@ -81,7 +81,7 @@ nlp = spacy.load("la_core_web_lg")
 | Feature | Description |
 | --- | --- |
 | **Name** | `la_core_web_lg` |
-| **Version** | `3.5.2` |
+| **Version** | `3.5.3` |
 | **spaCy** | `>=3.5.2,<3.6.0` |
 | **Default Pipeline** | `normer`, `tok2vec`, `tagger`, `morphologizer`, `trainable_lemmatizer`, `parser`, `lemma_fixer`, `ner` |
 | **Components** | `senter`, `normer`, `tok2vec`, `tagger`, `morphologizer`, `trainable_lemmatizer`, `parser`, `lemma_fixer`, `ner` |
@@ -94,25 +94,25 @@ nlp = spacy.load("la_core_web_lg")
 
 | Type | Score |
 | --- | --- |
-| `ENTS_F` | 89.97 |
-| `ENTS_P` | 86.72 |
-| `ENTS_R` | 93.46 |
-| `NER_LOSS` | 3452.09 |
-| `NER_TOK2VEC_LOSS` | 326.51 |
-| `SENTS_F` | 93.22 |
-| `SENTS_P` | 92.53 |
-| `SENTS_R` | 93.93 |
-| `TAG_ACC` | 94.14 |
-| `POS_ACC` | 97.34 |
-| `MORPH_ACC` | 92.79 |
+| `ENTS_F` | 90.81 |
+| `ENTS_P` | 87.61 |
+| `ENTS_R` | 94.24 |
+| `NER_LOSS` | 3678.58 |
+| `NER_TOK2VEC_LOSS` | 367.80 |
+| `SENTS_F` | 92.98 |
+| `SENTS_P` | 91.88 |
+| `SENTS_R` | 94.10 |
+| `TAG_ACC` | 93.98 |
+| `POS_ACC` | 97.45 |
+| `MORPH_ACC` | 92.74 |
 | `LEMMA_ACC` | 94.61 |
-| `DEP_UAS` | 83.37 |
-| `DEP_LAS` | 77.88 |
-| `TOK2VEC_LOSS` | 10891675.20 |
-| `TAGGER_LOSS` | 746155.69 |
-| `MORPHOLOGIZER_LOSS` | 1708216.08 |
-| `TRAINABLE_LEMMATIZER_LOSS` | 607607.46 |
-| `PARSER_LOSS` | 6177392.51 |
+| `DEP_UAS` | 83.39 |
+| `DEP_LAS` | 77.58 |
+| `TOK2VEC_LOSS` | 8866427.14 |
+| `TAGGER_LOSS` | 843356.21 |
+| `MORPHOLOGIZER_LOSS` | 1880822.56 |
+| `TRAINABLE_LEMMATIZER_LOSS` | 739522.22 |
+| `PARSER_LOSS` | 6549783.44 |
 
 NB: For full details on tags etc., see the README.md in the model package.
 

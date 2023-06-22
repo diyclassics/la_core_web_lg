@@ -4,7 +4,7 @@ from collections import namedtuple
 
 Noun = namedtuple("Noun", ["Gender", "Number", "Case"])
 Verb = namedtuple(
-    "Verb", ["Person", "Number", "Tense", "Mood", "Voice", "Gender", "Case"]
+    "Verb", ["VerbForm", "Person", "Number", "Tense", "Mood", "Voice", "Gender", "Case"]
 )
 
 df = pd.read_pickle("assets/preprocess/ud-parse-temp.pkl")

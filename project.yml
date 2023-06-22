@@ -5,7 +5,7 @@ vars:
   config: "config"
   lang: "la"
   package_name: "core_web_lg"
-  package_version: "3.5.2"
+  package_version: "3.5.3"
   gpu: -1
   treebank_pers: "UD_Latin-Perseus"
   treebank_proi: "UD_Latin-PROIEL"
@@ -58,15 +58,15 @@ assets:
 
 workflows:
   all:
-    # - assets 
-    # - preprocess 
-    # - convert 
-    # - norm-corpus    
-    # - init-labels
-    # - train
-    # - evaluate
-    # - convert-ner
-    # - train-ner
+    - assets 
+    - preprocess 
+    - convert 
+    - norm-corpus    
+    - init-labels
+    - train
+    - evaluate
+    - convert-ner
+    - train-ner
     - assemble
     - assemble-meta
     - package
