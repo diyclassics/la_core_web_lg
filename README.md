@@ -1,8 +1,8 @@
 <!-- SPACY PROJECT: AUTO-GENERATED DOCS START (do not remove) -->
 
-# 🪐 spaCy Project: la_core_web_lg
+# 🪐 spaCy Project: la_core_web_xx
 
-Code required to train spaCy-compatible lg core model for Latin, i.e pipeline with POS tagger, morphologizer, lemmatizer, dependency parser, and NER trained on all available Latin UD treebanks, i.e. Perseus, PROIEL, ITTB, UDante, and LLCT (see below). The model contains floret vectors (200,000) trained on Wikipedia, Oscar, UD and CC100-Latin data. NER is based on custom tagged data based on tagger output and manual annotation, supplemented by data from the Herodotos Project; this data is included in `assets/ner/`.
+Code required to train spaCy-compatible sm, md, and lg core models for Latin, i.e pipeline with POS tagger, morphologizer, lemmatizer, dependency parser, and NER trained on all available Latin UD treebanks, i.e. Perseus, PROIEL, ITTB, UDante, and LLCT (see below). The md and lg models contains floret vectors trained on Wikipedia, Oscar, UD and—for lg—CC100-Latin data. NER is based on custom tagged data based on tagger output and manual annotation, supplemented by data from the Herodotos Project; this data is included in `assets/ner/`.
 
 ## 📋 project.yml
 
@@ -22,15 +22,29 @@ Commands are only re-run if their inputs have changed.
 | `preprocess` | Convert different UD treebanks so that they use shared formatting, feature defs, etc. |
 | `convert` | Convert the data to spaCy's format |
 | `norm-corpus` | Convert norm attribute to u-v and i-j norm |
-| `init-labels` | Initialize labels for components |
-| `train` | Train tagger/parser/etc. on Latin UD treebanks |
-| `evaluate` | Evaluate model on the test data and save the metrics |
+| `init-labels_sm` | Initialize labels for components |
+| `init-labels_md` | Initialize labels for components |
+| `init-labels_lg` | Initialize labels for components |
+| `train_sm` | Train tagger/parser/etc. on Latin UD treebanks |
+| `train_md` | Train tagger/parser/etc. on Latin UD treebanks |
+| `train_lg` | Train tagger/parser/etc. on Latin UD treebanks |
+| `evaluate_sm` | Evaluate model on the test data and save the metrics |
+| `evaluate_md` | Evaluate model on the test data and save the metrics |
+| `evaluate_lg` | Evaluate model on the test data and save the metrics |
 | `convert-ner` | Convert the NER data to spaCy's binary format |
-| `train-ner` | Train the NER model for the model |
-| `assemble` | Assemble core model, i.e. add NER component to dep model |
-| `assemble-meta` | Assemble meta.json files so that all metrics are included |
-| `package` | Package the trained core model |
-| `document` | Document core_web_lg |
+| `train-ner_sm` | Train the NER model for the model |
+| `train-ner_md` | Train the NER model for the model |
+| `train-ner_lg` | Train the NER model for the model |
+| `assemble_sm` | Assemble core model, i.e. add NER component to dep model |
+| `assemble_md` | Assemble core model, i.e. add NER component to dep model |
+| `assemble_lg` | Assemble core model, i.e. add NER component to dep model |
+| `assemble-meta_sm` | Assemble meta.json files so that all metrics are included |
+| `assemble-meta_md` | Assemble meta.json files so that all metrics are included |
+| `assemble-meta_lg` | Assemble meta.json files so that all metrics are included |
+| `package_sm` | Package the trained core model |
+| `package_md` | Package the trained core model |
+| `package_lg` | Package the trained core model |
+| `document` | Document core_web_xx |
 | `clean` | Remove intermediate files |
 
 ### ⏭ Workflows
@@ -42,7 +56,7 @@ inputs have changed.
 
 | Workflow | Steps |
 | --- | --- |
-| `all` | `assets` &rarr; `preprocess` &rarr; `convert` &rarr; `norm-corpus` &rarr; `init-labels` &rarr; `train` &rarr; `evaluate` &rarr; `convert-ner` &rarr; `train-ner` &rarr; `assemble` &rarr; `assemble-meta` &rarr; `package` &rarr; `document` |
+| `all` | `assemble_sm` &rarr; `assemble_md` &rarr; `assemble_lg` &rarr; `assemble-meta_sm` &rarr; `assemble-meta_md` &rarr; `assemble-meta_lg` &rarr; `package_sm` &rarr; `package_md` &rarr; `package_lg` &rarr; `document` |
 
 ### 🗂 Assets
 
@@ -60,61 +74,27 @@ in the project directory.
 
 <!-- SPACY PROJECT: AUTO-GENERATED DOCS END (do not remove) -->
 
-## Install
+### Install
 
-- To install the current version...
+- To install the current version of the lg model...
     - `pip install https://huggingface.co/latincy/la_core_web_lg/resolve/main/la_core_web_lg-any-py3-none-any.whl`
 
-## Use in spaCy
+### Use in spaCy
+
+- To load the lg model in spaCy...
+
 ```
 import spacy
 nlp = spacy.load("la_core_web_lg")
 ```
 
-## Model repository
+### Model repository
 
-- The model itself can be found here:
-    - https://huggingface.co/latincy/la_core_web_lg
+- The models can be found here:
+    - https://huggingface.co/latincy
 
-## Current version
-
-| Feature | Description |
-| --- | --- |
-| **Name** | `la_core_web_lg` |
-| **Version** | `3.5.3` |
-| **spaCy** | `>=3.5.2,<3.6.0` |
-| **Default Pipeline** | `normer`, `tok2vec`, `tagger`, `morphologizer`, `trainable_lemmatizer`, `parser`, `lemma_fixer`, `ner` |
-| **Components** | `senter`, `normer`, `tok2vec`, `tagger`, `morphologizer`, `trainable_lemmatizer`, `parser`, `lemma_fixer`, `ner` |
-| **Vectors** | -1 keys, 200000 unique vectors (300 dimensions) |
-| **Sources** | UD_Latin-Perseus<br />UD_Latin-PROIEL<br />UD_Latin-ITTB<br />UD_Latin-LLCT<br />UD_Latin-UDante |
-| **License** | `MIT` |
-| **Author** | [Patrick J. Burns; with Nora Bernhardt [ner], Tim Geelhaar [tagger, morphologizer, parser, ner], Vincent Koch [ner]](https://diyclassics.github.io/) |
-
-### Accuracy
-
-| Type | Score |
-| --- | --- |
-| `ENTS_F` | 90.81 |
-| `ENTS_P` | 87.61 |
-| `ENTS_R` | 94.24 |
-| `NER_LOSS` | 3678.58 |
-| `NER_TOK2VEC_LOSS` | 367.80 |
-| `SENTS_F` | 92.98 |
-| `SENTS_P` | 91.88 |
-| `SENTS_R` | 94.10 |
-| `TAG_ACC` | 93.98 |
-| `POS_ACC` | 97.45 |
-| `MORPH_ACC` | 92.74 |
-| `LEMMA_ACC` | 94.61 |
-| `DEP_UAS` | 83.39 |
-| `DEP_LAS` | 77.58 |
-| `TOK2VEC_LOSS` | 8866427.14 |
-| `TAGGER_LOSS` | 843356.21 |
-| `MORPHOLOGIZER_LOSS` | 1880822.56 |
-| `TRAINABLE_LEMMATIZER_LOSS` | 739522.22 |
-| `PARSER_LOSS` | 6549783.44 |
-
-NB: For full details on tags etc., see the README.md in the model package.
+### Changelog
+- v3.5.3: Add Verbform to morph labels; allows better handling of infinitives, gerunds, and gerundives \[6.22.2023\]
 
 ### Bibliography
 - Cecchini, F.M., Passarotti, M., Marongiu, P., and Zeman, D. 2018. “Challenges in Converting the Index Thomisticus Treebank into Universal Dependencies.” In Proceedings of the Second Workshop on Universal Dependencies (UDW 2018). 27–36.
