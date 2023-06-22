@@ -1,10 +1,10 @@
-title: "la_core_web_lg"
-description: "Code required to train spaCy-compatible lg core model for Latin, i.e pipeline with POS tagger, morphologizer, lemmatizer, dependency parser, and NER trained on all available Latin UD treebanks, i.e. Perseus, PROIEL, ITTB, UDante, and LLCT (see below). The model contains floret vectors (200,000) trained on Wikipedia, Oscar, UD and CC100-Latin data. NER is based on custom tagged data based on tagger output and manual annotation, supplemented by data from the Herodotos Project; this data is included in `assets/ner/`."
+title: "la_core_web_xx"
+description: "Code required to train spaCy-compatible sm, md, and lg core models for Latin, i.e pipeline with POS tagger, morphologizer, lemmatizer, dependency parser, and NER trained on all available Latin UD treebanks, i.e. Perseus, PROIEL, ITTB, UDante, and LLCT (see below). The md and lg models contains floret vectors trained on Wikipedia, Oscar, UD and—for lg—CC100-Latin data. NER is based on custom tagged data based on tagger output and manual annotation, supplemented by data from the Herodotos Project; this data is included in `assets/ner/`."
 
 vars:
-  config: "config"
+  config: "config_lg"
   lang: "la"
-  package_name: "core_web_lg"
+  package_name: "core_web_"
   package_version: "3.5.3"
   gpu: -1
   treebank_pers: "UD_Latin-Perseus"
@@ -58,18 +58,32 @@ assets:
 
 workflows:
   all:
-    - assets 
-    - preprocess 
-    - convert 
-    - norm-corpus    
-    - init-labels
-    - train
-    - evaluate
-    - convert-ner
-    - train-ner
-    - assemble
-    - assemble-meta
-    - package
+    # - assets 
+    # - preprocess 
+    # - convert 
+    # - norm-corpus    
+    # - init-labels_sm
+    # - init-labels_md
+    # - init-labels_lg    
+    # - train_sm
+    # - train_md
+    # - train_lg        
+    # - evaluate_sm
+    # - evaluate_md
+    # - evaluate_lg    
+    # - convert-ner
+    # - train-ner_sm
+    # - train-ner_md
+    # - train-ner_lg        
+    - assemble_sm
+    - assemble_md
+    - assemble_lg        
+    - assemble-meta_sm
+    - assemble-meta_md
+    - assemble-meta_lg     
+    - package_sm
+    - package_md
+    - package_lg        
     - document    
     # - clean
 
@@ -270,13 +284,13 @@ commands:
       - "corpus/test/${vars.treebank_llct_data}-test.spacy"
       - "corpus/test/${vars.treebank_udan_data}-test.spacy"      
 
-  - name: init-labels
+  - name: init-labels_sm
     help: "Initialize labels for components"
     script:
       - >-
         python -m spacy init labels 
-        configs/${vars.config}.cfg
-        corpus/labels
+        configs/config_sm.cfg
+        corpus/labels/sm
         --gpu-id ${vars.gpu} 
         --paths.train corpus/train
         --paths.dev corpus/dev
@@ -286,20 +300,67 @@ commands:
       - "corpus/train"
       - "corpus/dev"
       - "corpus/test"
-      - "configs/${vars.config}.cfg"
+      - "configs/config_sm.cfg"
     outputs:
-      - "corpus/labels/morphologizer.json"
-      - "corpus/labels/parser.json"
-      - "corpus/labels/tagger.json"
-      - "corpus/labels/trainable_lemmatizer.json"                  
+      - "corpus/labels/sm/morphologizer.json"
+      - "corpus/labels/sm/parser.json"
+      - "corpus/labels/sm/tagger.json"
+      - "corpus/labels/sm/trainable_lemmatizer.json"          
 
-  - name: train
-    help: "Train tagger/parser/etc. on Latin UD treebanks"
+  - name: init-labels_md
+    help: "Initialize labels for components"
     script:
       - >-
+        python -m spacy init labels 
+        configs/config_md.cfg
+        corpus/labels/md
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/train
+        --paths.dev corpus/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/train"
+      - "corpus/dev"
+      - "corpus/test"
+      - "configs/config_md.cfg"
+    outputs:
+      - "corpus/labels/md/morphologizer.json"
+      - "corpus/labels/md/parser.json"
+      - "corpus/labels/md/tagger.json"
+      - "corpus/labels/md/trainable_lemmatizer.json"    
+
+  - name: init-labels_lg
+    help: "Initialize labels for components"
+    script:
+      - >-
+        python -m spacy init labels 
+        configs/config_lg.cfg
+        corpus/labels/lg
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/train
+        --paths.dev corpus/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/train"
+      - "corpus/dev"
+      - "corpus/test"
+      - "configs/config_lg.cfg"
+    outputs:
+      - "corpus/labels/lg/morphologizer.json"
+      - "corpus/labels/lg/parser.json"
+      - "corpus/labels/lg/tagger.json"
+      - "corpus/labels/lg/trainable_lemmatizer.json"          
+
+  - name: train_sm
+    help: "Train tagger/parser/etc. on Latin UD treebanks"
+    script:
+      - "mkdir -p training/sm"
+      - >-
         python -m spacy train 
-        configs/${vars.config}.cfg
-        --output training
+        configs/config_sm.cfg
+        --output training/sm
         --gpu-id ${vars.gpu} 
         --paths.train corpus/train
         --paths.dev corpus/dev
@@ -320,25 +381,121 @@ commands:
       - "corpus/test/${vars.treebank_ittb_data}-test.spacy"
       - "corpus/test/${vars.treebank_llct_data}-test.spacy"
       - "corpus/test/${vars.treebank_udan_data}-test.spacy"    
-      - "configs/${vars.config}.cfg"
+      - "configs/config_sm.cfg"
     outputs:
-      - "training/model-best"
+      - "training/sm/model-best"
 
-  - name: evaluate
+  - name: train_md
+    help: "Train tagger/parser/etc. on Latin UD treebanks"
+    script:
+      - "mkdir -p training/md"
+      - >-
+        python -m spacy train 
+        configs/config_md.cfg
+        --output training/md
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/train
+        --paths.dev corpus/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/train/${vars.treebank_pers_data}-train.spacy"
+      - "corpus/train/${vars.treebank_proi_data}-train.spacy"      
+      - "corpus/train/${vars.treebank_ittb_data}-train.spacy"      
+      - "corpus/train/${vars.treebank_llct_data}-train.spacy"
+      - "corpus/train/${vars.treebank_udan_data}-train.spacy"
+      - "corpus/dev/${vars.treebank_proi_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_ittb_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_llct_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_udan_data}-dev.spacy"
+      - "corpus/test/${vars.treebank_pers_data}-test.spacy"
+      - "corpus/test/${vars.treebank_proi_data}-test.spacy"
+      - "corpus/test/${vars.treebank_ittb_data}-test.spacy"
+      - "corpus/test/${vars.treebank_llct_data}-test.spacy"
+      - "corpus/test/${vars.treebank_udan_data}-test.spacy"    
+      - "configs/config_md.cfg"
+    outputs:
+      - "training/md/model-best"      
+
+  - name: train_lg
+    help: "Train tagger/parser/etc. on Latin UD treebanks"
+    script:
+      - "mkdir -p training/lg"
+      - >-
+        python -m spacy train 
+        configs/config_lg.cfg
+        --output training/lg
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/train
+        --paths.dev corpus/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/train/${vars.treebank_pers_data}-train.spacy"
+      - "corpus/train/${vars.treebank_proi_data}-train.spacy"      
+      - "corpus/train/${vars.treebank_ittb_data}-train.spacy"      
+      - "corpus/train/${vars.treebank_llct_data}-train.spacy"
+      - "corpus/train/${vars.treebank_udan_data}-train.spacy"
+      - "corpus/dev/${vars.treebank_proi_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_ittb_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_llct_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_udan_data}-dev.spacy"
+      - "corpus/test/${vars.treebank_pers_data}-test.spacy"
+      - "corpus/test/${vars.treebank_proi_data}-test.spacy"
+      - "corpus/test/${vars.treebank_ittb_data}-test.spacy"
+      - "corpus/test/${vars.treebank_llct_data}-test.spacy"
+      - "corpus/test/${vars.treebank_udan_data}-test.spacy"    
+      - "configs/config_lg.cfg"
+    outputs:
+      - "training/lg/model-best"    
+
+  - name: evaluate_sm
     help: "Evaluate model on the test data and save the metrics"
     script:
       - >-
         python -m spacy evaluate 
-        ./training/model-best 
+        ./training/sm/model-best 
         ./corpus/test/
-        --output ./metrics/${vars.lang}_${vars.package_name}_${vars.package_version}.json 
+        --output ./metrics/${vars.lang}_${vars.package_name}sm_${vars.package_version}.json 
         --code scripts/functions.py
         --gpu-id ${vars.gpu}
     deps:
-      - "training/model-best"
+      - "training/sm/model-best"
       - "corpus/test/"
     outputs:
-      - "metrics/{vars.package_name}-{vars.package_version}.json"
+      - "metrics/${vars.lang}_${vars.package_name}sm_${vars.package_version}.json"
+
+  - name: evaluate_md
+    help: "Evaluate model on the test data and save the metrics"
+    script:
+      - >-
+        python -m spacy evaluate 
+        ./training/md/model-best 
+        ./corpus/test/
+        --output ./metrics/${vars.lang}_${vars.package_name}md_${vars.package_version}.json 
+        --code scripts/functions.py
+        --gpu-id ${vars.gpu}
+    deps:
+      - "training/md/model-best"
+      - "corpus/test/"
+    outputs:
+      - "metrics/${vars.lang}_${vars.package_name}md_${vars.package_version}.json"
+
+  - name: evaluate_lg
+    help: "Evaluate model on the test data and save the metrics"
+    script:
+      - >-
+        python -m spacy evaluate 
+        ./training/lg/model-best 
+        ./corpus/test/
+        --output ./metrics/${vars.lang}_${vars.package_name}lg_${vars.package_version}.json 
+        --code scripts/functions.py
+        --gpu-id ${vars.gpu}
+    deps:
+      - "training/lg/model-best"
+      - "corpus/test/"
+    outputs:
+      - "metrics/${vars.lang}_${vars.package_name}lg_${vars.package_version}.json"            
 
   - name: convert-ner
     help: "Convert the NER data to spaCy's binary format"
@@ -361,56 +518,152 @@ commands:
       - "corpus/ner/train/herodotos_ner_train.spacy"
       - "corpus/ner/train/herodotos_ner_dev.spacy"
 
-  - name: train-ner
+  - name: train-ner_sm
     help: "Train the NER model for the model"
     script:
-      - "mkdir -p training/ner"
-      - "python -m spacy train configs/ner_config.cfg --output training/ner --paths.train corpus/ner/train --paths.dev corpus/ner/dev --training.eval_frequency 10 --training.patience 100 --gpu-id ${vars.gpu} --code scripts/functions.py --initialize.vectors training/model-best"
+      - "mkdir -p training/sm/ner"
+      - "python -m spacy train configs/ner_config_sm.cfg --output training/sm/ner --paths.train corpus/ner/train --paths.dev corpus/ner/dev --training.eval_frequency 10 --training.patience 100 --gpu-id ${vars.gpu} --code scripts/functions.py --initialize.vectors training/sm/model-best"
     deps:
-      - "configs/ner_config.cfg"
+      - "configs/ner_config_sm.cfg"
       - "corpus/ner/train"
       - "corpus/ner/dev"
     outputs:
-      - "training/ner/model-best"
+      - "training/sm/ner/model-best"
 
-  - name: assemble
+  - name: train-ner_md
+    help: "Train the NER model for the model"
+    script:
+      - "mkdir -p training/md/ner"
+      - "python -m spacy train configs/ner_config_md.cfg --output training/md/ner --paths.train corpus/ner/train --paths.dev corpus/ner/dev --training.eval_frequency 10 --training.patience 100 --gpu-id ${vars.gpu} --code scripts/functions.py --initialize.vectors training/md/model-best"
+    deps:
+      - "configs/ner_config_md.cfg"
+      - "corpus/ner/train"
+      - "corpus/ner/dev"
+    outputs:
+      - "training/md/ner/model-best"
+
+  - name: train-ner_lg
+    help: "Train the NER model for the model"
+    script:
+      - "mkdir -p training/lg/ner"
+      - "python -m spacy train configs/ner_config_lg.cfg --output training/lg/ner --paths.train corpus/ner/train --paths.dev corpus/ner/dev --training.eval_frequency 10 --training.patience 100 --gpu-id ${vars.gpu} --code scripts/functions.py --initialize.vectors training/lg/model-best"
+    deps:
+      - "configs/ner_config_lg.cfg"
+      - "corpus/ner/train"
+      - "corpus/ner/dev"
+    outputs:
+      - "training/lg/ner/model-best"            
+
+  - name: assemble_sm
     help: "Assemble core model, i.e. add NER component to dep model"
     script:
       - >-
         python -m spacy assemble
-        configs/config-core.cfg
-        training/model-assembled
+        configs/config-core_sm.cfg
+        training/sm/model-assembled
         --code scripts/functions.py
     deps:
-      - "training/model-best"
+      - "training/sm/model-best"
     outputs:
-      - "metrics/{vars.package_name}-{vars.package_version}.json"
-      - training/model-assembled
+      - "metrics/{vars.package_name}sm-{vars.package_version}.json"
+      - training/sm/model-assembled
+
+  - name: assemble_md
+    help: "Assemble core model, i.e. add NER component to dep model"
+    script:
+      - >-
+        python -m spacy assemble
+        configs/config-core_md.cfg
+        training/md/model-assembled
+        --code scripts/functions.py
+    deps:
+      - "training/md/model-best"
+    outputs:
+      - "metrics/{vars.package_name}md-{vars.package_version}.json"
+      - training/md/model-assembled
+
+  - name: assemble_lg
+    help: "Assemble core model, i.e. add NER component to dep model"
+    script:
+      - >-
+        python -m spacy assemble
+        configs/config-core_lg.cfg
+        training/lg/model-assembled
+        --code scripts/functions.py
+    deps:
+      - "training/lg/model-best"
+    outputs:
+      - "metrics/{vars.package_name}lg-{vars.package_version}.json"
+      - training/lg/model-assembled            
       
-  - name: assemble-meta
+  - name: assemble-meta_sm
     help: "Assemble meta.json files so that all metrics are included"
     script:
-      - "python scripts/assemble_meta.py --dep_meta training/model-best/meta.json --ner_meta training/ner/model-best/meta.json --assembled_meta training/model-assembled/meta.json"
+      - "python scripts/assemble_meta.py --dep_meta training/sm/model-best/meta.json --ner_meta training/sm/ner/model-best/meta.json --assembled_meta training/sm/model-assembled/meta.json"
 
-  - name: package
+  - name: assemble-meta_md
+    help: "Assemble meta.json files so that all metrics are included"
+    script:
+      - "python scripts/assemble_meta.py --dep_meta training/md/model-best/meta.json --ner_meta training/md/ner/model-best/meta.json --assembled_meta training/md/model-assembled/meta.json"
+
+  - name: assemble-meta_lg
+    help: "Assemble meta.json files so that all metrics are included"
+    script:
+      - "python scripts/assemble_meta.py --dep_meta training/lg/model-best/meta.json --ner_meta training/lg/ner/model-best/meta.json --assembled_meta training/lg/model-assembled/meta.json"      
+
+  - name: package_sm
     help: "Package the trained core model"
     script:
       - >-
         python -m spacy package 
-        training/model-assembled packages 
-        --name ${vars.package_name} 
+        training/sm/model-assembled packages 
+        --name ${vars.package_name}sm 
         --version ${vars.package_version}
         --meta data/meta.json
         --code scripts/functions.py
         --force
         --build wheel
     deps:
-      - "training/model-assembled"
+      - "training/sm/model-assembled"
     outputs_no_cache:
-      - "packages/${vars.lang}_${vars.package_name}-${vars.package_version}/dist/en_${vars.package_name}-${vars.package_version}.tar.gz"            
+      - "packages/${vars.lang}_${vars.package_name}sm-${vars.package_version}/dist/en_${vars.package_name}sm-${vars.package_version}.tar.gz"
+
+  - name: package_md
+    help: "Package the trained core model"
+    script:
+      - >-
+        python -m spacy package 
+        training/md/model-assembled packages 
+        --name ${vars.package_name}md 
+        --version ${vars.package_version}
+        --meta data/meta.json
+        --code scripts/functions.py
+        --force
+        --build wheel
+    deps:
+      - "training/md/model-assembled"
+    outputs_no_cache:
+      - "packages/${vars.lang}_${vars.package_name}md-${vars.package_version}/dist/en_${vars.package_name}md-${vars.package_version}.tar.gz"      
+
+  - name: package_lg
+    help: "Package the trained core model"
+    script:
+      - >-
+        python -m spacy package 
+        training/lg/model-assembled packages 
+        --name ${vars.package_name}lg 
+        --version ${vars.package_version}
+        --meta data/meta.json
+        --code scripts/functions.py
+        --force
+        --build wheel
+    deps:
+      - "training/lg/model-assembled"
+    outputs_no_cache:
+      - "packages/${vars.lang}_${vars.package_name}lg-${vars.package_version}/dist/en_${vars.package_name}lg-${vars.package_version}.tar.gz"                    
 
   - name: document
-    help: "Document ${vars.package_name}"
+    help: "Document ${vars.package_name}xx"
     script:
       - >-
         python -m spacy project document 
