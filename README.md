@@ -56,7 +56,7 @@ inputs have changed.
 
 | Workflow | Steps |
 | --- | --- |
-| `all` | `assemble_sm` &rarr; `assemble_md` &rarr; `assemble_lg` &rarr; `assemble-meta_sm` &rarr; `assemble-meta_md` &rarr; `assemble-meta_lg` &rarr; `package_sm` &rarr; `package_md` &rarr; `package_lg` &rarr; `document` |
+| `all` | `assets` &rarr; `preprocess` &rarr; `convert` &rarr; `norm-corpus` &rarr; `init-labels_sm` &rarr; `init-labels_md` &rarr; `init-labels_lg` &rarr; `train_sm` &rarr; `train_md` &rarr; `train_lg` &rarr; `evaluate_sm` &rarr; `evaluate_md` &rarr; `evaluate_lg` &rarr; `convert-ner` &rarr; `train-ner_sm` &rarr; `train-ner_md` &rarr; `train-ner_lg` &rarr; `assemble_sm` &rarr; `assemble_md` &rarr; `assemble_lg` &rarr; `assemble-meta_sm` &rarr; `assemble-meta_md` &rarr; `assemble-meta_lg` &rarr; `package_sm` &rarr; `package_md` &rarr; `package_lg` &rarr; `document` &rarr; `clean` |
 
 ### 🗂 Assets
 
@@ -94,6 +94,7 @@ nlp = spacy.load("la_core_web_lg")
     - https://huggingface.co/latincy
 
 ### Changelog
+- v3.6.0: Retrain with release of spaCy v3.6.0 \[07.08.2023\]
 - v3.5.3: Add Verbform to morph labels; allows better handling of infinitives, gerunds, and gerundives \[6.22.2023\]
 
 ### Bibliography

@@ -5,7 +5,7 @@ vars:
   config: "config_lg"
   lang: "la"
   package_name: "core_web_"
-  package_version: "3.5.3"
+  package_version: "3.6.0"
   gpu: -1
   treebank_pers: "UD_Latin-Perseus"
   treebank_proi: "UD_Latin-PROIEL"
@@ -23,7 +23,7 @@ vars:
   herodotos_ner_train: "ner/herodotos-ner-train.json"
   herodotos_ner_dev: "ner/herodotos-ner-train.json"
 
-spacy_version: ">=3.5.1,<3.6.0"
+spacy_version: ">=3.6.0,<3.7.0"
 check_requirements: true
 
 directories: ["assets", "corpus", "training", "configs", "metrics", "packages", "scripts"]
@@ -58,23 +58,23 @@ assets:
 
 workflows:
   all:
-    # - assets 
-    # - preprocess 
-    # - convert 
-    # - norm-corpus    
-    # - init-labels_sm
-    # - init-labels_md
-    # - init-labels_lg    
-    # - train_sm
-    # - train_md
-    # - train_lg        
-    # - evaluate_sm
-    # - evaluate_md
-    # - evaluate_lg    
-    # - convert-ner
-    # - train-ner_sm
-    # - train-ner_md
-    # - train-ner_lg        
+    - assets 
+    - preprocess 
+    - convert 
+    - norm-corpus    
+    - init-labels_sm
+    - init-labels_md
+    - init-labels_lg    
+    - train_sm
+    - train_md
+    - train_lg        
+    - evaluate_sm
+    - evaluate_md
+    - evaluate_lg    
+    - convert-ner
+    - train-ner_sm
+    - train-ner_md
+    - train-ner_lg        
     - assemble_sm
     - assemble_md
     - assemble_lg        
@@ -85,7 +85,7 @@ workflows:
     - package_md
     - package_lg        
     - document    
-    # - clean
+    - clean
 
 commands:
   - name: assets
@@ -681,4 +681,3 @@ commands:
       - sh -c "rm -rf metrics/*"
       - sh -c "rm -rf training/*"
       - sh -c "rm -rf vectors/*"
-
