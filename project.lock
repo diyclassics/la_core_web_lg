@@ -1,24 +1,22 @@
 assets:
-  cmd: python -m spacy run assets
+  cmd: python -m weasel run assets
   script:
     - mkdir -p assets/original
     - python -m spacy project assets
   deps: []
   outs:
     - path: assets/original/UD_Latin-Perseus
-      md5: 5cd323885042ab7c40d86ee11a1c2725
+      md5: 4a988bc51a6a2d72e391f49635a8ca35
     - path: assets/original/UD_Latin-PROIEL
-      md5: 67bd2d14e6831bc28b34606590d8f1e1
+      md5: fd2aada476326cf85c7fb459387a7227
     - path: assets/original/UD_Latin-ITTB
-      md5: 8f3fb1130a34bb6817450389d54e164e
+      md5: d41b553964b319585dd9d66bd5211caf
     - path: assets/original/UD_Latin-UDante
-      md5: 9ae826565249ae4fdc8e5bf29a46b180
+      md5: 82c20188151ed1d6ed146c962f385a2d
     - path: assets/original/UD_Latin-LLCT
-      md5: 390392be268860a0805e41d54461742a
-  spacy_version: 3.6.0
-  spacy_git_version: 6fc153a26
+      md5: 873f644dcf4b105d72f2e7a080f61508
 preprocess:
-  cmd: python -m spacy run preprocess
+  cmd: python -m weasel run preprocess
   script:
     - mkdir -p assets/preprocess
     - python scripts/conllu2tsv.py
@@ -30,37 +28,35 @@ preprocess:
   deps: []
   outs:
     - path: assets/processed/mod-la_perseus-ud-train.conllu
-      md5: 178ad490e72c35fa5f5d4d046b1895cc
+      md5: fb635bf837e5f0f6fc8507aaab304a52
     - path: assets/processed/mod-la_perseus-ud-test.conllu
-      md5: 998254d384d24b0542cdc1d6bff74b6e
+      md5: f720c7e8e21e7640ada7e1e04e6ad838
     - path: assets/processed/mod-la_proiel-ud-train.conllu
-      md5: c7b316f81626bd192ec29e469ac04537
+      md5: 03c4ba0cc1b1d15956ce63d4dc992347
     - path: assets/processed/mod-la_proiel-ud-dev.conllu
       md5: 3943b58b356a567b5e4923b8e2f4f51a
     - path: assets/processed/mod-la_proiel-ud-test.conllu
-      md5: 6c38d42cf56a2006cb269e26d6cf3fad
+      md5: df585a203ebfddf005332c1b689e3789
     - path: assets/processed/mod-la_ittb-ud-train.conllu
-      md5: 389e7f4a3651962ec1cecf397158269b
+      md5: adff0dbc5a20eb4001973c9ab609ccc4
     - path: assets/processed/mod-la_ittb-ud-dev.conllu
-      md5: 5de26590d335d7d59275d0a7a714dde0
+      md5: 5286586e152336076709fa06ba82a213
     - path: assets/processed/mod-la_ittb-ud-test.conllu
-      md5: 809899408c777f8f1f27402ab27e9451
+      md5: 426563e342204eeeb4c5cd9d42014274
     - path: assets/processed/mod-la_llct-ud-train.conllu
-      md5: e6f75d7b29b91d0e5c5cb980ac4c9ca9
+      md5: b5147779337c25adc3c756d7ad171724
     - path: assets/processed/mod-la_llct-ud-dev.conllu
-      md5: 3165938edb7789274422726bb1c3fee1
+      md5: 746d3def570125ced3aeb361870b1df9
     - path: assets/processed/mod-la_llct-ud-test.conllu
-      md5: 2106690634a3e004a32a906db7476f21
+      md5: 81ba78df2ccc56e92e88d6384de1d71d
     - path: assets/processed/mod-la_udante-ud-train.conllu
-      md5: dab71100ba3e44f91632fe1070c379f1
+      md5: f0e8a8913a2218e2a3860fd777312eaa
     - path: assets/processed/mod-la_udante-ud-dev.conllu
-      md5: d264adf10180195ff9c98987355ba5b1
+      md5: 675ecb16814b505fc7f5156d63b89f7e
     - path: assets/processed/mod-la_udante-ud-test.conllu
-      md5: f12e763e06b68a6b109758338324c2a2
-  spacy_version: 3.6.0
-  spacy_git_version: 6fc153a26
+      md5: 9e90bb1b26703b315fc785bc1d3a9627
 convert:
-  cmd: python -m spacy run convert
+  cmd: python -m weasel run convert
   script:
     - mkdir -p corpus/train
     - mkdir -p corpus/dev
@@ -98,64 +94,62 @@ convert:
     - sh -c 'mv corpus/*test.spacy corpus/test/'
   deps:
     - path: assets/processed/mod-la_perseus-ud-train.conllu
-      md5: 178ad490e72c35fa5f5d4d046b1895cc
+      md5: fb635bf837e5f0f6fc8507aaab304a52
     - path: assets/processed/mod-la_perseus-ud-test.conllu
-      md5: 998254d384d24b0542cdc1d6bff74b6e
+      md5: f720c7e8e21e7640ada7e1e04e6ad838
     - path: assets/processed/mod-la_proiel-ud-train.conllu
-      md5: c7b316f81626bd192ec29e469ac04537
+      md5: 03c4ba0cc1b1d15956ce63d4dc992347
     - path: assets/processed/mod-la_proiel-ud-dev.conllu
       md5: 3943b58b356a567b5e4923b8e2f4f51a
     - path: assets/processed/mod-la_proiel-ud-test.conllu
-      md5: 6c38d42cf56a2006cb269e26d6cf3fad
+      md5: df585a203ebfddf005332c1b689e3789
     - path: assets/processed/mod-la_ittb-ud-train.conllu
-      md5: 389e7f4a3651962ec1cecf397158269b
+      md5: adff0dbc5a20eb4001973c9ab609ccc4
     - path: assets/processed/mod-la_ittb-ud-dev.conllu
-      md5: 5de26590d335d7d59275d0a7a714dde0
+      md5: 5286586e152336076709fa06ba82a213
     - path: assets/processed/mod-la_ittb-ud-test.conllu
-      md5: 809899408c777f8f1f27402ab27e9451
+      md5: 426563e342204eeeb4c5cd9d42014274
     - path: assets/processed/mod-la_llct-ud-train.conllu
-      md5: e6f75d7b29b91d0e5c5cb980ac4c9ca9
+      md5: b5147779337c25adc3c756d7ad171724
     - path: assets/processed/mod-la_llct-ud-dev.conllu
-      md5: 3165938edb7789274422726bb1c3fee1
+      md5: 746d3def570125ced3aeb361870b1df9
     - path: assets/processed/mod-la_llct-ud-test.conllu
-      md5: 2106690634a3e004a32a906db7476f21
+      md5: 81ba78df2ccc56e92e88d6384de1d71d
     - path: assets/processed/mod-la_udante-ud-train.conllu
-      md5: dab71100ba3e44f91632fe1070c379f1
+      md5: f0e8a8913a2218e2a3860fd777312eaa
     - path: assets/processed/mod-la_udante-ud-dev.conllu
-      md5: d264adf10180195ff9c98987355ba5b1
+      md5: 675ecb16814b505fc7f5156d63b89f7e
     - path: assets/processed/mod-la_udante-ud-test.conllu
-      md5: f12e763e06b68a6b109758338324c2a2
+      md5: 9e90bb1b26703b315fc785bc1d3a9627
   outs:
     - path: corpus/train/mod-la_perseus-ud-train.spacy
-      md5: d6fffd58f653534d62cb60440c272981
+      md5: 1d38517037a8b7b26776d0fc4414b737
     - path: corpus/train/mod-la_proiel-ud-train.spacy
-      md5: 07a6b5fc8def4cbc2fef7cd79fbfb516
+      md5: 98faabeea1b830525d0835e197a7cfde
     - path: corpus/train/mod-la_ittb-ud-train.spacy
-      md5: 0e528d480900475b2ecc6e46017730f4
+      md5: 83a94350a54b4eba470636d957cf9885
     - path: corpus/train/mod-la_llct-ud-train.spacy
-      md5: f3222f103b50437fa641e6eb0ab2aa67
+      md5: 280ddc962c7e26cb3df383c6907ccad9
     - path: corpus/train/mod-la_udante-ud-train.spacy
-      md5: 013700b4155025bb18087fd7c5185d82
+      md5: 396fea1cf77b8e751a974c6f66205fb9
     - path: corpus/dev/mod-la_proiel-ud-dev.spacy
       md5: be6b4ee74911cb07d156e643ede93b5d
     - path: corpus/dev/mod-la_ittb-ud-dev.spacy
-      md5: fcb3d6b5186e73484e44dc857ddac915
+      md5: f05add7c7a7a0b3f10cfb3ec63238a0f
     - path: corpus/dev/mod-la_llct-ud-dev.spacy
-      md5: f2ee0f3f00dda47cb35a482a057528e0
+      md5: 3ce8eb870ad55a5bba05dbef996c6353
     - path: corpus/dev/mod-la_udante-ud-dev.spacy
-      md5: e6d11f7d61d6b984eea07a31efe5a2e1
+      md5: 4c198ab1a1287dcdf5142031084f5d22
     - path: corpus/test/mod-la_perseus-ud-test.spacy
-      md5: eb16d2769eb48d3feae8b9bdd47f312d
+      md5: 67aae45bcc58f9d0e781eaf8d7b46f20
     - path: corpus/test/mod-la_proiel-ud-test.spacy
-      md5: 0823a7b8a0a4cb6673592b7e5b05a4a6
+      md5: f05c7a48121def6840bfdb3c8670f07d
     - path: corpus/test/mod-la_ittb-ud-test.spacy
-      md5: ed25a5f147120bd22abebe47863354f7
+      md5: 47d9d389d93a36162c0b60034c8b3d27
     - path: corpus/test/mod-la_llct-ud-test.spacy
-      md5: f76403e932b21aa3aafba0ebb47904dc
+      md5: 8360258b4caf1cb8aedbc4511fc81231
     - path: corpus/test/mod-la_udante-ud-test.spacy
-      md5: d439a99d73ffebf851607c8da05be371
-  spacy_version: 3.6.0
-  spacy_git_version: 6fc153a26
+      md5: 4a2299a80735d5744b55b08a02773fee
 extract-wikipedia:
   cmd: python -m spacy run extract-wikipedia
   script:
@@ -344,41 +338,39 @@ document:
   spacy_version: 3.6.0
   spacy_git_version: 6fc153a26
 norm-corpus:
-  cmd: python -m spacy run norm-corpus
+  cmd: python -m weasel run norm-corpus
   script:
     - python scripts/norm_docbin.py
   deps: []
   outs:
     - path: corpus/train/mod-la_perseus-ud-train.spacy
-      md5: 1fe01673979ce518ef09a167c1798e78
+      md5: eef82064f2bc6bdae79afbb46e9955f0
     - path: corpus/train/mod-la_proiel-ud-train.spacy
-      md5: 5af52e1dd05ab9d8795425f2a31f19f6
+      md5: ca7adeda4de1dd44aed7aab5502a07f2
     - path: corpus/train/mod-la_ittb-ud-train.spacy
-      md5: f4f89e3ea654f34e811435f1ada25cc8
+      md5: fefadd16598c83bd43f5ce7f71d3ce45
     - path: corpus/train/mod-la_llct-ud-train.spacy
-      md5: 22aabb529a49466145055c735f385895
+      md5: 116360823e90d2ac6b9c424fb030462b
     - path: corpus/train/mod-la_udante-ud-train.spacy
-      md5: a374c832c801d2ae5e0ba2d33409b0a0
+      md5: fa940c797a10991f913240af348a2c4c
     - path: corpus/dev/mod-la_proiel-ud-dev.spacy
       md5: 7ed0c395a17f576b1d5cb2707e80c1ac
     - path: corpus/dev/mod-la_ittb-ud-dev.spacy
-      md5: c5505c888113d192ab90026e5f38c42d
+      md5: 1217c897b6627cfac26ce9aec049680e
     - path: corpus/dev/mod-la_llct-ud-dev.spacy
-      md5: 2d8d8031fcc8e98eb1ad8c0a89a5b125
+      md5: cc03bc4c62f70fe541717127db6a62d8
     - path: corpus/dev/mod-la_udante-ud-dev.spacy
-      md5: a4d4a8f34dab320593a89c16cff80d1d
+      md5: 46928782b54b2619a22c736746ac7d73
     - path: corpus/test/mod-la_perseus-ud-test.spacy
-      md5: 9b6c7fe785a43d4f9be7334d39760bb4
+      md5: fb922e02a2e3d114dfac13204e7ae98b
     - path: corpus/test/mod-la_proiel-ud-test.spacy
-      md5: 84de3031defeb27f5f1c6eb0f6f9b349
+      md5: 4113f468aeb723705cbd79e773f14670
     - path: corpus/test/mod-la_ittb-ud-test.spacy
-      md5: d90104df9a4a72a992e49892a3bfe599
+      md5: f18617ccaaee55d4b960616408ae83f9
     - path: corpus/test/mod-la_llct-ud-test.spacy
-      md5: 3cebf8790cf9adcd554c1b1b4472fcd5
+      md5: 4d9287356589eebc6f2d73a20db3b2d5
     - path: corpus/test/mod-la_udante-ud-test.spacy
-      md5: 5ff412094819152127d893bcf84e60da
-  spacy_version: 3.6.0
-  spacy_git_version: 6fc153a26
+      md5: 5d2583e1089717964adaacd50829f7cb
 train-sm:
   cmd: python -m spacy run train-sm
   script:
@@ -773,80 +765,74 @@ assemble:
   spacy_version: 3.5.3
   spacy_git_version: '512241e12'
 init-labels_sm:
-  cmd: python -m spacy run init-labels_sm
+  cmd: python -m weasel run init-labels_sm
   script:
     - python -m spacy init labels  configs/config_sm.cfg corpus/labels/sm --gpu-id
       -1  --paths.train corpus/train --paths.dev corpus/dev --nlp.lang=la --code scripts/functions.py
   deps:
     - path: corpus/train
-      md5: 9d33505a71f76796b72c18f9e985c9cb
+      md5: 1341e23f951e17828a42036d6a9f48c1
     - path: corpus/dev
-      md5: 63aedf5a7292b654ee90df2d7e55be8c
+      md5: 017c08b141850582834ad51594a071fa
     - path: corpus/test
-      md5: 68f31d04f137c83bf369213769be8678
+      md5: c3c20d779d134ed7dff2472d36518806
     - path: configs/config_sm.cfg
       md5: 74722d61c8b2a670afcbfb8674ecefb7
   outs:
     - path: corpus/labels/sm/morphologizer.json
-      md5: 896742f7698ef11f85e273749772899a
+      md5: 286fdff562780bcfe450c5ba305bdc19
     - path: corpus/labels/sm/parser.json
-      md5: d18bbe537bd2f2564e91d0f57abff734
+      md5: fa4474abb3dc05bf92e20c5853ca204d
     - path: corpus/labels/sm/tagger.json
-      md5: da93dba7fb85084aeeaeca8fd6850480
+      md5: 4cbf3feab025fdde1ef87a621940fe51
     - path: corpus/labels/sm/trainable_lemmatizer.json
-      md5: 3e86e93d3c6db10a6a847dcaf5898058
-  spacy_version: 3.6.0
-  spacy_git_version: 6fc153a26
+      md5: a757b5701ddc6040c6b4c94c580d86be
 init-labels_md:
-  cmd: python -m spacy run init-labels_md
+  cmd: python -m weasel run init-labels_md
   script:
     - python -m spacy init labels  configs/config_md.cfg corpus/labels/md --gpu-id
       -1  --paths.train corpus/train --paths.dev corpus/dev --nlp.lang=la --code scripts/functions.py
   deps:
     - path: corpus/train
-      md5: 9d33505a71f76796b72c18f9e985c9cb
+      md5: 1341e23f951e17828a42036d6a9f48c1
     - path: corpus/dev
-      md5: 63aedf5a7292b654ee90df2d7e55be8c
+      md5: 017c08b141850582834ad51594a071fa
     - path: corpus/test
-      md5: 68f31d04f137c83bf369213769be8678
+      md5: c3c20d779d134ed7dff2472d36518806
     - path: configs/config_md.cfg
       md5: 7d45330bfc212c24ca2fdda6976bc309
   outs:
     - path: corpus/labels/md/morphologizer.json
-      md5: 896742f7698ef11f85e273749772899a
+      md5: 8e5f718caf4ecd0bbe1db34ead33c8be
     - path: corpus/labels/md/parser.json
-      md5: d18bbe537bd2f2564e91d0f57abff734
+      md5: 22e9176078d70154df6bfb5500c3d9d7
     - path: corpus/labels/md/tagger.json
-      md5: da93dba7fb85084aeeaeca8fd6850480
+      md5: 826b32c3f4a79704032a5d4cbed7cab0
     - path: corpus/labels/md/trainable_lemmatizer.json
-      md5: 3e86e93d3c6db10a6a847dcaf5898058
-  spacy_version: 3.6.0
-  spacy_git_version: 6fc153a26
+      md5: a757b5701ddc6040c6b4c94c580d86be
 init-labels_lg:
-  cmd: python -m spacy run init-labels_lg
+  cmd: python -m weasel run init-labels_lg
   script:
     - python -m spacy init labels  configs/config_lg.cfg corpus/labels/lg --gpu-id
       -1  --paths.train corpus/train --paths.dev corpus/dev --nlp.lang=la --code scripts/functions.py
   deps:
     - path: corpus/train
-      md5: 9d33505a71f76796b72c18f9e985c9cb
+      md5: 1341e23f951e17828a42036d6a9f48c1
     - path: corpus/dev
-      md5: 63aedf5a7292b654ee90df2d7e55be8c
+      md5: 017c08b141850582834ad51594a071fa
     - path: corpus/test
-      md5: 68f31d04f137c83bf369213769be8678
+      md5: c3c20d779d134ed7dff2472d36518806
     - path: configs/config_lg.cfg
       md5: 9d7feab8c3207aa88370c02cd8d2b7c3
   outs:
     - path: corpus/labels/lg/morphologizer.json
-      md5: 896742f7698ef11f85e273749772899a
+      md5: 8e5f718caf4ecd0bbe1db34ead33c8be
     - path: corpus/labels/lg/parser.json
-      md5: d18bbe537bd2f2564e91d0f57abff734
+      md5: 22e9176078d70154df6bfb5500c3d9d7
     - path: corpus/labels/lg/tagger.json
-      md5: da93dba7fb85084aeeaeca8fd6850480
+      md5: 826b32c3f4a79704032a5d4cbed7cab0
     - path: corpus/labels/lg/trainable_lemmatizer.json
-      md5: 3e86e93d3c6db10a6a847dcaf5898058
-  spacy_version: 3.6.0
-  spacy_git_version: 6fc153a26
+      md5: a757b5701ddc6040c6b4c94c580d86be
 train_sm:
   cmd: python -m spacy run train_sm
   script:

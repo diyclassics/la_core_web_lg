@@ -5,7 +5,7 @@ vars:
   config: "config_lg"
   lang: "la"
   package_name: "core_web_"
-  package_version: "3.6.0"
+  package_version: "3.7.4"
   gpu: -1
   treebank_pers: "UD_Latin-Perseus"
   treebank_proi: "UD_Latin-PROIEL"
@@ -22,9 +22,6 @@ vars:
   ud_ner_dev: "ner/ud-ner-dev.json"
   herodotos_ner_train: "ner/herodotos-ner-train.json"
   herodotos_ner_dev: "ner/herodotos-ner-train.json"
-
-spacy_version: ">=3.6.0,<3.7.0"
-check_requirements: true
 
 directories: ["assets", "corpus", "training", "configs", "metrics", "packages", "scripts"]
 
@@ -62,9 +59,7 @@ workflows:
     - preprocess 
     - convert 
     - norm-corpus    
-    - init-labels_sm
-    - init-labels_md
-    - init-labels_lg    
+    - init-labels
     - train_sm
     - train_md
     - train_lg        
@@ -284,13 +279,13 @@ commands:
       - "corpus/test/${vars.treebank_llct_data}-test.spacy"
       - "corpus/test/${vars.treebank_udan_data}-test.spacy"      
 
-  - name: init-labels_sm
+  - name: init-labels
     help: "Initialize labels for components"
     script:
       - >-
         python -m spacy init labels 
         configs/config_sm.cfg
-        corpus/labels/sm
+        corpus/labels
         --gpu-id ${vars.gpu} 
         --paths.train corpus/train
         --paths.dev corpus/dev
@@ -302,56 +297,10 @@ commands:
       - "corpus/test"
       - "configs/config_sm.cfg"
     outputs:
-      - "corpus/labels/sm/morphologizer.json"
-      - "corpus/labels/sm/parser.json"
-      - "corpus/labels/sm/tagger.json"
-      - "corpus/labels/sm/trainable_lemmatizer.json"          
-
-  - name: init-labels_md
-    help: "Initialize labels for components"
-    script:
-      - >-
-        python -m spacy init labels 
-        configs/config_md.cfg
-        corpus/labels/md
-        --gpu-id ${vars.gpu} 
-        --paths.train corpus/train
-        --paths.dev corpus/dev
-        --nlp.lang=${vars.lang}
-        --code scripts/functions.py
-    deps:
-      - "corpus/train"
-      - "corpus/dev"
-      - "corpus/test"
-      - "configs/config_md.cfg"
-    outputs:
-      - "corpus/labels/md/morphologizer.json"
-      - "corpus/labels/md/parser.json"
-      - "corpus/labels/md/tagger.json"
-      - "corpus/labels/md/trainable_lemmatizer.json"    
-
-  - name: init-labels_lg
-    help: "Initialize labels for components"
-    script:
-      - >-
-        python -m spacy init labels 
-        configs/config_lg.cfg
-        corpus/labels/lg
-        --gpu-id ${vars.gpu} 
-        --paths.train corpus/train
-        --paths.dev corpus/dev
-        --nlp.lang=${vars.lang}
-        --code scripts/functions.py
-    deps:
-      - "corpus/train"
-      - "corpus/dev"
-      - "corpus/test"
-      - "configs/config_lg.cfg"
-    outputs:
-      - "corpus/labels/lg/morphologizer.json"
-      - "corpus/labels/lg/parser.json"
-      - "corpus/labels/lg/tagger.json"
-      - "corpus/labels/lg/trainable_lemmatizer.json"          
+      - "corpus/labels/morphologizer.json"
+      - "corpus/labels/parser.json"
+      - "corpus/labels/tagger.json"
+      - "corpus/labels/trainable_lemmatizer.json"              
 
   - name: train_sm
     help: "Train tagger/parser/etc. on Latin UD treebanks"

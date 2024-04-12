@@ -18,14 +18,15 @@ for file in tqdm(files):
             if "proi" in file:
                 sentence.metadata["text"] = f'{sentence.metadata["text"]}.'
             for token in sentence:
-                row = {}
-                row.update({"file": file})
-                row.update(sentence.metadata)
-                row.update(token)
-                rows.append(row)
-                last_token = token["id"]
-                if token["deprel"] == "root":
-                    last_root = token["id"]
+                if str(token["id"]).isdigit():
+                    row = {}
+                    row.update({"file": file})
+                    row.update(sentence.metadata)
+                    row.update(token)
+                    rows.append(row)
+                    last_token = token["id"]
+                    if token["deprel"] == "root":
+                        last_root = token["id"]
             if "proi" in file:
                 row = {}
                 row.update({"file": file})
