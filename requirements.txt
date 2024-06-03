@@ -2,7 +2,7 @@ conllu==4.5.2
 la-vectors-floret-lg @ https://huggingface.co/latincy/la_vectors_floret_lg/resolve/main/la_vectors_floret_lg-3.7.2-py3-none-any.whl
 la-vectors-floret-md @ https://huggingface.co/latincy/la_vectors_floret_md/resolve/main/la_vectors_floret_md-3.7.2-py3-none-any.whl
 matplotlib==3.7.1
-numpy==1.26.0
+numpy==1.24.3
 pandas==2.0.3
 scikit-learn==1.2.0
 spacy==3.7.4
