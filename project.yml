@@ -6,7 +6,7 @@ vars:
   lang: "la"
   package_name: "core_web_"
   package_version: "3.7.4"
-  gpu: -1
+  gpu: 0
   treebank_pers: "UD_Latin-Perseus"
   treebank_proi: "UD_Latin-PROIEL"
   treebank_ittb: "UD_Latin-ITTB"
@@ -25,7 +25,6 @@ vars:
 
 directories: ["assets", "corpus", "training", "configs", "metrics", "packages", "scripts"]
 
-# NB: spacy projects assets fails with smart-open==6.2.0; downgraded to 5.2.1
 assets:
   - dest: "assets/original/${vars.treebank_pers}"
     git:
@@ -55,10 +54,10 @@ assets:
 
 workflows:
   all:
-    - assets 
-    - preprocess 
-    - convert 
-    - norm-corpus    
+    # - assets 
+    # - preprocess 
+    # - convert 
+    # - norm-corpus    
     - init-labels
     - train_sm
     - train_md
@@ -80,7 +79,7 @@ workflows:
     - package_md
     - package_lg        
     - document    
-    - clean
+    # - clean
 
 commands:
   - name: assets
@@ -133,98 +132,84 @@ commands:
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_pers_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_proi_data}-train.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_proi_data}-dev.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_proi_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_ittb_data}-train.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_ittb_data}-dev.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_ittb_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_llct_data}-train.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_llct_data}-dev.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_llct_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_udan_data}-train.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_udan_data}-dev.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - >-
         python -m spacy convert
         assets/processed/${vars.treebank_udan_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
-        --merge-subtokens
       - sh -c 'mv corpus/*train.spacy corpus/train/'
       - sh -c 'mv corpus/*dev.spacy corpus/dev/'
       - sh -c 'mv corpus/*test.spacy corpus/test/'
