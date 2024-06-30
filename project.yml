@@ -5,7 +5,7 @@ vars:
   config: "config_lg"
   lang: "la"
   package_name: "core_web_"
-  package_version: "3.7.4"
+  package_version: "3.7.5"
   gpu: 0
   treebank_pers: "UD_Latin-Perseus"
   treebank_proi: "UD_Latin-PROIEL"
@@ -54,10 +54,10 @@ assets:
 
 workflows:
   all:
-    # - assets 
-    # - preprocess 
-    # - convert 
-    # - norm-corpus    
+    - assets 
+    - preprocess 
+    - convert 
+    - norm-corpus    
     - init-labels
     - train_sm
     - train_md
@@ -71,7 +71,8 @@ workflows:
     - train-ner_lg        
     - assemble_sm
     - assemble_md
-    - assemble_lg        
+    - assemble_lg
+    - evaluate_assemble_sm        
     - assemble-meta_sm
     - assemble-meta_md
     - assemble-meta_lg     
@@ -529,7 +530,24 @@ commands:
     outputs:
       - "metrics/{vars.package_name}lg-{vars.package_version}.json"
       - training/lg/model-assembled            
-      
+
+  - name: evaluate_assemble_sm
+    help: "Evaluate model on the test data and save the metrics"
+    script:
+      - >-
+        python -m spacy evaluate 
+        ./training/sm/model-assembled
+        ./corpus/test/
+        --output ./metrics/${vars.lang}_${vars.package_name}_assemble_sm_${vars.package_version}.json 
+        --code scripts/functions.py
+        --gpu-id ${vars.gpu}
+    deps:
+      - "training/sm/model-best"
+      - "corpus/test/"
+    outputs:
+      - "metrics/${vars.lang}_${vars.package_name}_assemble_sm_${vars.package_version}.json"
+
+
   - name: assemble-meta_sm
     help: "Assemble meta.json files so that all metrics are included"
     script:
