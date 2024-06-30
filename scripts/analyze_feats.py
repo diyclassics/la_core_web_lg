@@ -266,40 +266,46 @@ df["feats_Person"] = df["feats_Person"].apply(lambda x: update_person(x))
 
 # B.8.1 Infinitives
 
+
 def update_infinitives(row):
-    if row['feats_VerbForm'] == 'Inf' or row['misc_TraditionalMood'] == 'Infinitivum':
-        row['feats_Mood'] = 'Inf'
-        if row['feats_Aspect'] == 'Perf':
-            row['feats_Tense'] = 'Past'
-        elif row['feats_Aspect'] == 'Imp':
-            row['feats_Tense'] = 'Pres'
+    if row["feats_VerbForm"] == "Inf" or row["misc_TraditionalMood"] == "Infinitivum":
+        row["feats_Mood"] = "Inf"
+        if row["feats_Aspect"] == "Perf":
+            row["feats_Tense"] = "Past"
+        elif row["feats_Aspect"] == "Imp":
+            row["feats_Tense"] = "Pres"
         else:
             pass
     return row
+
 
 df = df.apply(update_infinitives, axis=1)
 
 # B.8.2 Gerunds
 
+
 def update_gerunds(row):
-    if row['feats_VerbForm'] == 'Ger' or row['misc_TraditionalMood'] == 'Gerundium':
-        row['feats_Tense'] = 'Fut'
-        row['feats_Voice'] = 'Pass'
-        row['feats_VerbForm'] = 'Part'
-        row['feats_Mood'] = 'Ger'
+    if row["feats_VerbForm"] == "Ger" or row["misc_TraditionalMood"] == "Gerundium":
+        row["feats_Tense"] = "Fut"
+        row["feats_Voice"] = "Pass"
+        row["feats_VerbForm"] = "Part"
+        row["feats_Mood"] = "Ger"
     return row
+
 
 df = df.apply(update_gerunds, axis=1)
 
 # B.8.1 Gerundives
 
+
 def update_gerundives(row):
-    if row['feats_VerbForm'] == 'Gdv' or row['misc_TraditionalMood'] == 'Gerundivum':
-        row['feats_VerbForm'] = 'Part'
-        row['feats_Tense'] = 'Fut'
-        row['feats_Voice'] = 'Pass'
-        row['feats_Mood'] = 'Gdv'
+    if row["feats_VerbForm"] == "Gdv" or row["misc_TraditionalMood"] == "Gerundivum":
+        row["feats_VerbForm"] = "Part"
+        row["feats_Tense"] = "Fut"
+        row["feats_Voice"] = "Pass"
+        row["feats_Mood"] = "Gdv"
     return row
+
 
 df = df.apply(update_gerundives, axis=1)
 
@@ -320,7 +326,7 @@ def get_pos_feats(row):
         or row["upos"] == "DET"
     ):
         return Noun(row["feats_Gender"], row["feats_Number"], row["feats_Case"])
-    elif row["upos"] == "VERB":
+    elif row["upos"] == "VERB" or row["upos"] == "AUX":
         return Verb(
             row["feats_VerbForm"],
             row["feats_Person"],
@@ -401,7 +407,7 @@ def map_xpos(row):
             "Pr": "pronoun",
             "S-": "adverb",
             "C-": "conjunction",
-            "G-": "conjuntion",
+            "G-": "conjunction",
             "I-": "interjection",
             "Df": "adverb",
             "Du": "adverb",
@@ -497,6 +503,7 @@ def get_perseus_proper_noun(row):
         if row["xpos"] == "noun" and row["lemma"][0].isupper():
             return "proper_noun"
     return row["xpos"]
+
 
 df["xpos"] = df.apply(lambda x: get_perseus_proper_noun(x), axis=1)
 

@@ -16,9 +16,9 @@ assembled_meta = args.assembled_meta
 def get_assembled_meta_performance_json(dep_meta, ner_meta):
     dep_meta_json = json.load(open(dep_meta))
     ner_meta_json = json.load(open(ner_meta))
-    ner_meta_json["performance"]["ner_tok2vec_loss"] = ner_meta_json["performance"].pop(
-        "tok2vec_loss"
-    )
+    # ner_meta_json["performance"]["ner_tok2vec_loss"] = ner_meta_json["performance"].pop(
+    #     "tok2vec_loss"
+    # )
 
     assembled_meta_json = dep_meta_json.copy()
     assembled_meta_json["performance"] = (
