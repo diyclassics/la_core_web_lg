@@ -1,15 +1,7 @@
 import spacy
 from spacy.language import Language
-from spacy.lookups import load_lookups
-
-import string
 from typing import List
-
 from spacy.util import registry, compile_suffix_regex
-
-blank_nlp = spacy.blank("la")
-lookups_data = load_lookups(lang=blank_nlp.vocab.lang, tables=["lemma_lookup"])
-LOOKUPS = lookups_data.get_table("lemma_lookup")
 
 que_exceptions = []  # type: List[str]
 
@@ -198,19 +190,44 @@ def make_customize_tokenizer():
     return customize_tokenizer
 
 
+# ----- lookup_lemmatizer ----- #
+from spacy.language import Language
+from spacy.lookups import load_lookups
+from spacy.tokens import Token
+import string
+
+blank_nlp = spacy.blank("la")
+lookups_data = load_lookups(lang=blank_nlp.vocab.lang, tables=["lemma_lookup"])
+LOOKUPS = lookups_data.get_table("lemma_lookup")
+
+predicted_lemma_getter = lambda token: token.lemma_
+Token.set_extension(
+    "predicted_lemma", getter=predicted_lemma_getter
+)  # TODO: test that this works
+
+
 @Language.component(name="lookup_lemmatizer")
 def make_lookup_lemmatizer_function(doc):
     for token in doc:
+        # Handle punctuation
         if token.text in string.punctuation:
             token.lemma_ = token.text
             token.pos_ = "PUNCT"
             token.tag_ = "punc"
-        elif token.text == "que" and (
+
+        # Handle "que" enclitics
+        if token.text == "que" and (
             token.pos_ == "CCONJ" or token.tag_ == "conjunction"
         ):
             token.lemma_ = token.text
-        elif token.text[0].isupper() and token.text not in LOOKUPS.keys():
+
+        # Lookup lemmatizer
+        token.lemma_ = LOOKUPS.get(token.text, token.lemma_)
+
+        # Better handle capitalization
+        if token.text[0].isupper() and token.text not in LOOKUPS:
             token.lemma_ = LOOKUPS.get(token.text.lower(), token.lemma_)
-        else:
-            token.lemma_ = LOOKUPS.get(token.text, token.lemma_)
     return doc
+
+
+# ---------- #

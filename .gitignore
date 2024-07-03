@@ -166,5 +166,5 @@ cython_debug/
 .vscode/
 
 # Local
-assets/original/
-scripts/tsv2ner.py
+assets/
+*.sbatch

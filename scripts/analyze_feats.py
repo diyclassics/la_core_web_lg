@@ -1,364 +1,109 @@
+import os.path
+from glob import glob
+from tqdm import tqdm
+from conllu import parse
 import re
-import pandas as pd
-from collections import namedtuple
 
-df = pd.read_csv("assets/preprocess/ud-parse-temp.tsv", sep="\t", low_memory=False)
-
-# A. Convert UPOS
-
-# A.1. Drop X for known words
-
-from collections import defaultdict, Counter
-
-upos_multi = defaultdict(list)
-
-for word, uposs in zip(df["lemma"], df["upos"]):
-    upos_multi[word].append(uposs)
-
-upos_multi = {k: Counter(v) for k, v in upos_multi.items()}
+UPDATE_PATH = "assets/preprocess"
+files = [file for file in glob("assets/preprocess/*.conllu", recursive=True)]
+print("\n\nUpdating conllu files for further processing...\n")
 
 
-def update_upos_multi_x(row):
-    if row["upos"] == "X" and row["lemma"] in upos_multi.keys():
-        row["upos"] = upos_multi[row["lemma"]].most_common(1)[0][0]
-    return row["upos"]
+def update_feats_tense(token):
+    feats = token.get("feats", None)
+    if feats:
+        if "Tense" in feats:
+            if feats["Tense"] == "Pqp":
+                feats["Tense"] = "Pqp"
+            elif feats["Tense"] == "Pres":
+                feats["Tense"] = "Pres"
+            elif feats["Tense"] == "Fut":
+                aspect = feats.get("Aspect", None)
+                if aspect:
+                    if aspect == "Perf":
+                        feats["Tense"] = "FutPerf"
+                    else:
+                        feats["Tense"] = "Fut"
+                else:
+                    feats["Tense"] = "Fut"
+            elif feats["Tense"] == "Past":
+                aspect = feats.get("Aspect", None)
+                if aspect:
+                    if aspect == "Imp":
+                        feats["Tense"] = "Imp"
+                    else:
+                        feats["Tense"] = "Perf"
+                else:
+                    feats["Tense"] = "Perf"
+            else:
+                pass
+    return token
 
 
-# A.2. Drop with review, single
-# This section consists of an ongoing lists of words for review for UPOS; a minimal, (ideally) consistent set is retained, and all others are marked with an underscore (i.e. )
+def update_feats_mood(token):
+    feats = token.get("feats", None)
+    misc = token.get("misc", None)
 
-upos_single = {
-    "sum": ["AUX"],
-    "in": ["ADP"],
-    "non": ["PART"],
-    "per": ["ADP"],
-    "ab": ["ADP"],
-    "dico": ["VERB"],
-    "uos": ["PRON"],
-    "de": ["ADP"],
-    "deus": ["NOUN"],
-    "ex": ["ADP"],
-    "sed": ["CCONJ"],
-    "habeo": ["VERB"],
-    "si": ["SCONJ"],
-    "possum": ["VERB"],
-    "sicut": ["ADV"],
-    "quia": ["SCONJ"],
-    "-": ["PUNCT"],
-    "_": ["_"],
-    "dementia": ["NOUN"],
-    "ecce": ["INTJ"],
-    "en": ["INTJ"],
-    "equidem": ["ADV"],
-    "heu": ["INTJ"],
-    "met": ["PART"],
-    "num": ["PART"],
-    "o": ["INTJ"],
-    "ouum": ["NOUN"],
-    "quidem": ["ADV"],
-    "quoque": ["ADV"],
-    "trecenti": ["NUM"],
-    "uiii": ["NUM"],
-    "x": ["NUM"],
-    "xi": ["NUM"],
-    "non": ["PART"],
-    "omnis": ["ADJ"],
-    "suus": ["ADJ"],
-    "meus": ["ADJ"],
-    "tuus": ["ADJ"],
-    "noster": ["ADJ"],
-    "uester": ["ADJ"],
-    "an": ["PART"],
-    "aliquis": ["PRON"],
-    "aliqui": ["PRON"],
-    "que": ["CCONJ"],
-    "aut": ["CCONJ"],
-    "greek.expression": ["X"],
-    "terra": ["NOUN"],
-    "quis": ["PRON"],
-    "finis": ["NOUN"],
-    "causa": ["NOUN"],
-    "casa": ["NOUN"],
-    "presbyter": ["NOUN"],
-    "multus": ["ADJ"],
-    "notarius": ["NOUN"],
-    "moueo": ["VERB"],
-    "bonum": ["NOUN"],
-    "humanus": ["ADJ"],
-    "quondam": ["ADV"],
-    "totus": ["ADJ"],
-    "nullus": ["ADJ"],
-    "Iesus": ["PROPN"],
-    "proprius": ["ADJ"],
-    "naturalis": ["ADJ"],
-    "manifestus": ["ADJ"],
-    "successor": ["NOUN"],
-    "quantum": ["ADV"],
-    "alter": ["ADJ"],
-    "mitto": ["VERB"],
-    "integer": ["ADJ"],
-    "scilicet": ["ADV"],
-    "huiusmodi": ["ADV"],
-    "possibilis": ["ADJ"],
-    "uerus": ["ADJ"],
-    "ultimus": ["ADJ"],
-    "item": ["ADV"],
-    "tunc": ["ADV"],
-    "malum": ["NOUN"],
-    "qualiter": ["ADV"],
-    "domus": ["NOUN"],
-    "intelligibilis": ["ADJ"],
-    "impossibilis": ["ADJ"],
-    "diuersus": ["ADJ"],
-    "intellectualis": ["ADJ"],
-    "simul": ["ADV"],
-    "tam": ["ADV"],
-    "amplus": ["ADJ"],
-    "bene": ["ADV"],
-    "licet": ["VERB"],
-    "missus": ["NOUN"],
-    "similis": ["ADJ"],
-    "similiter": ["ADV"],
-    "infinitus": ["ADJ"],
-    "relinquo": ["VERB"],
-    "quoniam": ["SCONJ"],
-    "mensis": ["NOUN"],
-    "sui": ["PRON"],
-    "malus": ["ADJ: NOUN"],
-    "uniuersalis": ["ADJ"],
-    "beatus": ["ADJ; NOUN"],
-    "subiectum": ["NOUN"],
-    "publicus": ["ADJ; NOUN"],
-    "uterque": ["DET"],
-    "populus": ["NOUN"],
-    "corporalis": ["ADJ"],
-    "aqua": ["NOUN"],
-    "rego": ["VERB"],
-    "puto": ["VERB"],
-    "atque": ["CCONJ"],
-    "solus": ["ADJ"],
-    "tres": ["NUM"],
-    "ille": ["DET"],
-    "iste": ["DET"],
-}
-
-
-def update_upos_single(row):
-    if row["lemma"] in upos_single.keys():
-        row["upos"] = upos_single[row["lemma"]][0]
-    return row["upos"]
-
-
-df["upos"] = df.apply(update_upos_single, axis=1)
-
-upos_multi = {
-    "et": {"CCONJ": "CCONJ", "SCONJ": "CCONJ", "ADP": "_", "ADV": "ADV", "ADJ": "_"},
-    "qui": {
-        "PRON": "PRON",
-        "DET": "PRON",
-        "SCONJ": "PRON",
-        "NOUN": "_",
-        "ADJ": "_",
-        "ADV": "ADV",
-    },
-    "is": {"PRON": "PRON", "ADJ": "DET", "DET": "DET"},
-    "ad": {"ADP": "ADP", "ADV": "ADP", "SCONJ": "ADP"},
-    "hic": {"DET": "DET", "ADV": "ADV", "PRON": "DET", "ADJ": "DET"},
-    "quod": {"SCONJ": "SCONJ", "PRON": "PRON", "ADV": "ADV", "ADP": "_"},
-    "autem": {"PART": "CCONJ", "CCONJ": "CCONJ", "ADV": "ADV"},
-    "ut": {"SCONJ": "SCONJ", "ADV": "ADV", "ADP": "_", "CCONJ": "SCONJ"},
-    "ipse": {"PRON": "PRON", "ADJ": "DET", "DET": "DET"},
-    "cum": {"SCONJ": "SCONJ", "ADP": "ADP", "CCONJ": "SCONJ", "ADV": "SCONJ"},
-    "uel": {"CCONJ": "CCONJ", "SCONJ": "CCONJ", "ADV": "ADV"},
-    "enim": {"PART": "PART", "CCONJ": "PART", "SCONJ": "PART", "ADV": "ADV"},
-    "igitur": {"PART": "PART", "CCONJ": "PART", "SCONJ": "PART", "ADV": "ADV"},
-    "etiam": {"ADV": "ADV", "CCONJ": "CCONJ", "SCONJ": "CCONJ"},
-    "ne": {"SCONJ": "PART", "PART": "PART", "ADV": "ADV", "INTJ": "_"},
-    "nam": {"PART": "PART", "CCONJ": "PART", "ADV": "ADV"},
-    "itaque": {"PART": "PART", "SCONJ": "PART", "ADV": "ADV"},
-    "etenim": {"PART": "PART", "SCONJ": "PART", "ADV": "ADV"},
-    "uiii": {"NUM": "NUM", "ADV": "NUM"},
-    "namque": {"PART": "PART", "CCONJ": "PART", "ADV": "ADV"},
-    "siquidem": {"PART": "PART", "SCONJ": "PART", "ADV": "ADV"},
-    "nempe": {"SCONJ": "PART", "PART": "PART"},
-    "secundum": {"ADP": "ADP", "ADV": "ADV", "SCONJ": "ADV"},
-    "unus": {"DET": "ADJ", "NUM": "NUM", "ADV": "NUM", "ADJ": "ADJ"},
-    "diuinus": {"ADJ": "ADJ", "NOUN": "NOUN", "ADV": "ADJ"},
-    "ago": {"VERB": "VERB", "NOUN": "NOUN", "AUX": "VERB"},
-    "bonus": {"ADJ": "ADJ", "NOUN": "NOUN", "ADV": "_"},
-    "quidam": {"DET": "DET", "PRON": "PRON", "ADJ": "DET"},
-    "quam": {"SCONJ": "SCONJ", "CCONJ": "SCONJ", "ADV": "ADV", "ADP": "_", "PRON": "_"},
-    "idem": {"DET": "DET", "ADV": "ADV", "PRON": "PRON", "ADJ": "_"},
-    "propter": {"ADP": "ADP", "SCONJ": "ADV"},
-    "nam": {"PART": "PART", "CCONJ": "PART", "ADV": "ADV"},
-    "magnus": {"ADJ": "ADJ", "NOUN": "NOUN", "ADV": "_", "PROPN": "PROPN"},
-    "inter": {"ADP": "ADP", "SCONJ": "_", "ADV": "ADV"},
-    "post": {"ADP": "ADP", "ADV": "ADV", "SCONJ": "_", "ADJ": "_"},
-    "duo": {"NUM": "NUM", "NOUN": "_", "ADJ": "NUM"},
-    "nihil": {"PRON": "NOUN", "ADV": "ADV", "NOUN": "NOUN", "DET": "NOUN", "ADJ": "_"},
-    "latus": {"NOUN": "NOUN", "ADV": "_", "ADJ": "ADJ", "ADP": "_"},
-    "ante": {"ADP": "ADP", "ADV": "ADV", "SCONJ": "_"},
-    "quicumque": {"DET": "ADJ", "PRON": "PRON", "ADJ": "ADJ"},
-    "dum": {"SCONJ": "SCONJ", "ADP": "_", "ADV": "_", "CCONJ": "SCONJ"},
-    "malus": {"ADJ": "ADJ", "NOUN": "NOUN", "ADV": "ADJ"},
-    "beatus": {"ADJ": "ADJ", "NOUN": "NOUN", "VERB": "ADJ"},
-    "publicus": {"ADJ": "ADJ", "ADV": "ADJ", "NOUN": "NOUN"},
-    "paruus": {"ADV": "ADJ", "ADJ": "ADJ", "NOUN": "NOUN", "DET": "ADJ"},
-}
-
-
-def update_upos_multi(row):
-    if row["lemma"] in upos_multi.keys():
-        updates = upos_multi[row["lemma"]]
-        row["upos"] = updates.get(row["upos"], "_")
-    return row["upos"]
-
-
-df["upos"] = df.apply(update_upos_multi, axis=1)
-
-
-# # B. Normalize feats
-
-# B.1. feats_Gender: 'Masc', 'Fem', Neut', nan
-# There are annotations in feats_Gender that are comma-separated, e.g. "Fem,Neut"; return first in list
-
-
-def split_gender(entry):
-    if pd.isna(entry):
-        return None
-    if "," in entry:
-        return entry.split(",")[0]
-    else:
-        return entry
-
-
-df["feats_Gender"] = df["feats_Gender"].apply(lambda x: split_gender(x))
-
-# B.2. feats_Number: 'Sing', 'Plur', nan
-# OK
-
-# B.3. feats_Case: 'Nom', 'Gen', 'Dat', 'Acc', 'Abl', 'Voc', 'Loc', nan
-# OK
-
-# B.4. feats_Person: '1', '2', '3', nan
-# Needs to be kept as string
-
-
-def update_person(entry):
-    if pd.isna(entry):
-        return None
-    return str(int(entry))
-
-
-df["feats_Person"] = df["feats_Person"].apply(lambda x: update_person(x))
-
-# B.5. feats_Tense: 'Pqp', 'Past', 'Pres', 'Fut', nan
-# OK
-
-# B.6. feats_Mood: 'Ind', 'Imp', 'Sub', nan
-# OK
-
-# B.7. feats_Voice: 'Act', 'Pass', nan
-# OK
-
-
-# B.8 Handle special cases
-
-# B.8.1 Infinitives
-
-
-def update_infinitives(row):
-    if row["feats_VerbForm"] == "Inf" or row["misc_TraditionalMood"] == "Infinitivum":
-        row["feats_Mood"] = "Inf"
-        if row["feats_Aspect"] == "Perf":
-            row["feats_Tense"] = "Past"
-        elif row["feats_Aspect"] == "Imp":
-            row["feats_Tense"] = "Pres"
-        else:
-            pass
-    return row
-
-
-df = df.apply(update_infinitives, axis=1)
-
-# B.8.2 Gerunds
-
-
-def update_gerunds(row):
-    if row["feats_VerbForm"] == "Ger" or row["misc_TraditionalMood"] == "Gerundium":
-        row["feats_Tense"] = "Fut"
-        row["feats_Voice"] = "Pass"
-        row["feats_VerbForm"] = "Part"
-        row["feats_Mood"] = "Ger"
-    return row
-
-
-df = df.apply(update_gerunds, axis=1)
-
-# B.8.1 Gerundives
-
-
-def update_gerundives(row):
-    if row["feats_VerbForm"] == "Gdv" or row["misc_TraditionalMood"] == "Gerundivum":
-        row["feats_VerbForm"] = "Part"
-        row["feats_Tense"] = "Fut"
-        row["feats_Voice"] = "Pass"
-        row["feats_Mood"] = "Gdv"
-    return row
-
-
-df = df.apply(update_gerundives, axis=1)
-
-# B.9 Combine features as necessary for form
-
-Noun = namedtuple("Noun", ["Gender", "Number", "Case"])
-Verb = namedtuple(
-    "Verb", ["VerbForm", "Person", "Number", "Tense", "Mood", "Voice", "Gender", "Case"]
-)
-
-
-def get_pos_feats(row):
-    if (
-        row["upos"] == "NOUN"
-        or row["upos"] == "PROPN"
-        or row["upos"] == "PRON"
-        or row["upos"] == "ADJ"
-        or row["upos"] == "DET"
-    ):
-        return Noun(row["feats_Gender"], row["feats_Number"], row["feats_Case"])
-    elif row["upos"] == "VERB" or row["upos"] == "AUX":
-        return Verb(
-            row["feats_VerbForm"],
-            row["feats_Person"],
-            row["feats_Number"],
-            row["feats_Tense"],
-            row["feats_Mood"],
-            row["feats_Voice"],
-            row["feats_Gender"],
-            row["feats_Case"],
+    def is_infinitive(feats, misc):
+        return (feats and feats.get("VerbForm", None) == "Inf") or (
+            misc and misc.get("TraditionalMood", None) == "Infinitivum"
         )
+
+    def is_gerund(feats, misc):
+        return (feats and feats.get("VerbForm", None) == "Ger") or (
+            misc and misc.get("TraditionalMood", None) == "Gerundium"
+        )
+
+    def is_gerundive(feats, misc):
+        return (feats and feats.get("VerbForm", None) == "Gdv") or (
+            misc and misc.get("TraditionalMood", None) == "Gerundivum"
+        )
+
+    if is_infinitive(feats, misc):
+        if feats.get("Aspect", None):
+            if feats["Aspect"] == "Perf":
+                feats["Tense"] = "Perf"
+            elif feats["Aspect"] == "Imp":
+                feats["Tense"] = "Pres"
+            else:
+                pass
+    elif is_gerund(feats, misc):
+        feats["Tense"] = "Fut"
+        feats["Voice"] = "Pass"
+        feats["VerbForm"] = "Part"
+        feats["Mood"] = "Ger"
+    elif is_gerundive(feats, misc):
+        feats["VerbForm"] = "Part"
+        feats["Tense"] = "Fut"
+        feats["Voice"] = "Pass"
+        feats["Mood"] = "Gdv"
     else:
-        return None
+        pass
+    return token
 
 
-df["feats"] = df.apply(get_pos_feats, axis=1)
+def limit_features(token):
+    feats = token.get("feats", None)
+    if feats:
+        allowed_keys = [
+            "Gender",
+            "Number",
+            "Case",
+            "VerbForm",
+            "Person",
+            "Tense",
+            "Mood",
+            "Voice",
+        ]
+        keys_to_delete = [key for key in feats if key not in allowed_keys]
+        for key in keys_to_delete:
+            del feats[key]
 
-# C. Normalize xpos
-# Difficult to map as annotations are all different; using Treetagger tagset as guide for now
-# cf. https://www.cis.lmu.de/~schmid/tools/TreeTagger/data/tagsetdocs.txt
+    return token
 
 
-def extract_treebank_name(treebank):
-    # e.g. assets/UD_Latin-ITTB/la_ittb-ud-test.conllu
-    treebank = re.match(r".*UD_Latin-(.*)/.*", treebank).group(1)
-    return treebank.lower()
-
-
-df["treebank"] = df["file"].apply(lambda x: extract_treebank_name(x))
-
-
-def map_xpos(row):
-    if row["treebank"] == "perseus":
+def update_xpos(treebank, token):
+    if treebank == "perseus":
         perseus_map = {
             "_": "_",
             "n": "noun",
@@ -378,17 +123,17 @@ def map_xpos(row):
             "-": "unknown",
             "u": "punc",
         }
-        try:
-            xpos_initial = row["xpos"][0]
-        except:
-            xpos_initial = "_"
-        update = perseus_map.get(xpos_initial, "_")
-        return update
-    elif row["treebank"] == "proiel":
+        if token.get("xpos", None):
+            xpos_initial = token["xpos"][0]
+            token["xpos"] = perseus_map.get(xpos_initial, "_")
+        else:
+            token["xpos"] = "_"
+
+    elif treebank == "proiel":
         proiel_map = {
             "_": "_",
             "Nb": "noun",
-            "F-": "noun",
+            "F-": "_",
             "Ne": "proper_noun",
             "A-": "adjective",
             "Ma": "number",
@@ -416,10 +161,8 @@ def map_xpos(row):
             "X-": "unknown",
             "PUNCT": "punc",
         }
-        update = proiel_map.get(row["xpos"], "_")
-
-        return update
-    elif row["treebank"] == "llct":
+        token["xpos"] = proiel_map.get(token["xpos"], "_")
+    elif treebank == "llct":
         llct_map = {
             "_": "_",
             "Propn": "proper_noun",
@@ -436,13 +179,11 @@ def map_xpos(row):
             "t": "verb",  # participle
             "v": "verb",
         }
-        try:
-            update = llct_map.get(row["xpos"].split("|")[0], "_")
-        except:
-            update = "_"
-
-        return update
-    elif row["treebank"] == "ittb":
+        if token.get("xpos", None):
+            token["xpos"] = llct_map.get(token["xpos"].split("|")[0], "_")
+        else:
+            token["xpos"] = "_"
+    elif treebank == "ittb":
         ittb_upos_map = {
             "_": "_",
             "PART": "particle",
@@ -461,10 +202,8 @@ def map_xpos(row):
             "NUM": "number",
             "X": "unknown",
         }
-        update = ittb_upos_map.get(row["upos"], "_")
-
-        return update
-    elif row["treebank"] == "udante":
+        token["xpos"] = ittb_upos_map.get(token["upos"], "_")
+    elif treebank == "udante":
         udante_map = {
             "_": "_",
             "9": "particle",
@@ -479,56 +218,152 @@ def map_xpos(row):
             "v": "verb",
             "a": "adjective",
         }
-        try:
-            update = udante_map.get(row["xpos"][0], "_")
-        except:
-            update = "_"
 
-        return update
+        if token.get("xpos", None):
+            token["xpos"] = udante_map.get(token["xpos"][0], "_")
+        else:
+            token["xpos"] = "_"
     else:
-        return "_"
+        pass
+    return token
 
 
-df["xpos"] = df.apply(lambda x: map_xpos(x), axis=1)
-df["xpos"] = df.apply(
-    lambda x: "number" if x["upos"] == "NUM" else x["xpos"], axis=1
-)  # UDANTE numbers from UPOS
-df["xpos"] = df.apply(
-    lambda x: "verb" if x["upos"] == "VERB" else x["xpos"], axis=1
-)  # UDANTE participle from UPOS
+def update_numbers(token):
+    if token["upos"] == "NUM":
+        token["xpos"] = "number"
+    return token
 
 
-def get_perseus_proper_noun(row):
-    if row["treebank"] == "perseus":
-        if row["xpos"] == "noun" and row["lemma"][0].isupper():
-            return "proper_noun"
-    return row["xpos"]
+def update_participles(token):
+    # Check, esp. UDante
+    if token["upos"] == "VERB":
+        token["xpos"] = "verb"
+    return token
 
 
-df["xpos"] = df.apply(lambda x: get_perseus_proper_noun(x), axis=1)
+def get_proper_noun(token):
+    if token["xpos"] == "noun" and token["lemma"][0].isupper():
+        token["xpos"] = "proper_noun"
+    if token["xpos"] == "proper_noun" or token["upos"] == "PROPN":
+        token["xpos"] = "proper_noun"
+        token["upos"] = "PROPN"
+        token["lemma"] = token["lemma"].title()
+    return token
 
-# Not using misc in spaCy training
-df["misc"] = "_"
 
-df.to_csv("assets/preprocess/ud-parse-temp.tsv", sep="\t", index=False)
-df[
-    [
-        "id",
-        "form",
-        "lemma",
-        "upos",
-        "xpos",
-        "feats",
-        "head",
-        "deprel",
-        "deps",
-        "misc",
-        "file",
-        "sent_id",
-        "text",
-        "reference",
-        "newdoc id",
-        "source",
-        "citation_hierarchy",
-    ]
-].to_pickle("assets/preprocess/ud-parse-temp.pkl")
+def update_punct(token):
+    if token["upos"] == "PUNCT":
+        token["xpos"] = "punc"
+    return token
+
+
+def norm_form(token):
+    if "(" in token["lemma"] and ")" in token["lemma"]:
+        token["lemma"] = token["lemma"].replace("(", "").replace(")", "")
+    if token["form"] == "sì":
+        token["form"] = "si"
+        token["lemma"] = "si"
+    if token["xpos"] == "proper_noun" or token["upos"] == "PROPN":
+        token["form"] = token["form"].title()
+        token["lemma"] = token["lemma"].title()
+    return token
+
+
+def norm_nec(token):
+    if token["form"] == "nec":
+        token["lemma"] = "neque"
+    return token
+
+
+def norm_defective_verbs(token):
+    if token["lemma"] == "coepio":
+        token["form"] = "coepi"
+    elif token["lemma"] == "odio":
+        token["form"] = "odi"
+    else:
+        pass
+    return token
+
+
+def norm_greek(token):
+    # check if the token is a Greek word
+    # if so, update xpos and upos
+    import re
+
+    if re.search(r"[Α-Ωα-ω]", token["form"]):
+        token["lemma"] = "greek.expression"  # TODO: Add a lemma for Greek expressions
+        token["xpos"] = "_"
+        token["upos"] = "X"
+    return token
+
+
+def misc_fix(token):
+    # Correcting any systematic errors that appear in the UD annotations.
+    # TODO: Push these corrections to the UD repository
+    if token["form"] == "ad":
+        token["lemma"] = "ad"
+    if token["form"] == "ab":
+        token["lemma"] = "ab"
+    if token["form"] == "deus,":
+        token["form"] = "deus"
+        token["lemma"] = "deus"
+    if token["form"] == "esse" and token["lemma"] == "esse":
+        token["lemma"] = "sum"
+    if token["lemma"] == "*lyrcea":
+        token["lemma"] = "Lyrcea"
+    # Correcting misc harmonization issues
+    if token["form"] == "dii":
+        token["lemma"] = "deus"
+    if token["lemma"] == "pena":
+        token["lemma"] = "poena"
+    if token["lemma"] == "seipsum":
+        token["lemma"] = "seipse"
+    if token["form"] == "subito":
+        token["lemma"] = "subito"
+        token["xpos"] = "adverb"
+        token["upos"] = "ADV"
+    return token
+
+
+for file in tqdm(files):
+    treebank = re.match(r".*preprocess/MM-la_(.*)-ud.*", file).group(1)
+    serialization = []
+    print(f"Processing {file} to update features...")
+    with open(file) as f:
+        contents = f.read()
+        sentences = parse(contents)
+        for sentence in tqdm(sentences):
+            for token in sentence:
+                # PREPROCESS: Update tense for Latin
+                token = update_feats_tense(token)
+                # PREPROCESS: Update mood for Latin
+                token = update_feats_mood(token)
+                # PREPROCESS: Update xpos for Latin
+                token = update_xpos(treebank, token)
+                # PREPROCESS: Update numbers for Latin
+                token = update_numbers(token)
+                # PREPROCESS: Update participles for Latin
+                token = update_participles(token)
+                # PREPROCESS: Get proper nouns
+                token = get_proper_noun(token)
+                # PREPROCESS: Update punctuation
+                token = update_punct(token)
+                # PREPROCESS: Normalize form
+                token = norm_form(token)
+                # PREPROCESS: Normalize "nec"
+                token = norm_nec(token)
+                # PREPROCESS: Normalize defective verbs
+                token = norm_defective_verbs(token)
+                # PREPROCESS: Normalize Greek
+                token = norm_greek(token)
+                # PREPROCESS: Limit features to those necessary for form
+                token = limit_features(token)
+                # PREPROCESS: Miscellaneous fixes
+                token = misc_fix(token)
+
+            serialization.append(sentence.serialize())
+
+    outfile = os.path.join(UPDATE_PATH, os.path.basename(file))
+
+    with open(outfile, "w") as f:
+        f.write("".join([sentence for sentence in serialization]))

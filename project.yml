@@ -12,11 +12,11 @@ vars:
   treebank_ittb: "UD_Latin-ITTB"
   treebank_llct: "UD_Latin-LLCT"
   treebank_udan: "UD_Latin-UDante"
-  treebank_pers_data: "mod-la_perseus-ud"
-  treebank_proi_data: "mod-la_proiel-ud"
-  treebank_ittb_data: "mod-la_ittb-ud"
-  treebank_llct_data: "mod-la_llct-ud"
-  treebank_udan_data: "mod-la_udante-ud"
+  treebank_pers_data: "MM-la_perseus-ud"
+  treebank_proi_data: "MM-la_proiel-ud"
+  treebank_ittb_data: "MM-la_ittb-ud"
+  treebank_llct_data: "MM-la_llct-ud"
+  treebank_udan_data: "MM-la_udante-ud"
   # NER vars
   ud_ner_train: "ner/ud-ner-train.json"
   ud_ner_dev: "ner/ud-ner-dev.json"
@@ -26,30 +26,10 @@ vars:
 directories: ["assets", "corpus", "training", "configs", "metrics", "packages", "scripts"]
 
 assets:
-  - dest: "assets/original/${vars.treebank_pers}"
+  - dest: "assets/original/"
     git:
-      repo: "https://github.com/UniversalDependencies/${vars.treebank_pers}"
-      branch: "master"
-      path: ""
-  - dest: "assets/original/${vars.treebank_proi}"
-    git:
-      repo: "https://github.com/UniversalDependencies/${vars.treebank_proi}"
-      branch: "master"
-      path: ""
-  - dest: "assets/original/${vars.treebank_ittb}"
-    git:
-      repo: "https://github.com/UniversalDependencies/${vars.treebank_ittb}"
-      branch: "master"
-      path: ""
-  - dest: "assets/original/${vars.treebank_llct}"
-    git:
-      repo: "https://github.com/UniversalDependencies/${vars.treebank_llct}"
-      branch: "master"
-      path: ""
-  - dest: "assets/original/${vars.treebank_udan}"
-    git:
-      repo: "https://github.com/UniversalDependencies/${vars.treebank_udan}"
-      branch: "master"
+      repo: "https://github.com/fjambe/Latin-variability"
+      branch: "main"
       path: ""
 
 workflows:
@@ -57,7 +37,6 @@ workflows:
     - assets 
     - preprocess 
     - convert 
-    - norm-corpus    
     - init-labels
     - train_sm
     - train_md
@@ -72,7 +51,6 @@ workflows:
     - assemble_sm
     - assemble_md
     - assemble_lg
-    - evaluate_assemble_sm        
     - assemble-meta_sm
     - assemble-meta_md
     - assemble-meta_lg     
@@ -86,8 +64,14 @@ commands:
   - name: assets
     help: "Download assets"
     script:
-      - "mkdir -p assets/original"
+      - mkdir -p assets/original
+      - sh -c "rm -rf assets/original/*" 
+      - "mkdir -p assets/temp"
       - python -m spacy project assets
+      - cp -r assets/original/morpho_harmonization/morpho-harmonized-treebanks/ assets/temp
+      - sh -c "rm -rf assets/original/*"
+      - cp -r assets/temp/ assets/original
+      - sh -c "rm -rf assets/temp"
     outputs:
       - "assets/original/${vars.treebank_pers}"
       - "assets/original/${vars.treebank_proi}"
@@ -99,27 +83,23 @@ commands:
     help: "Convert different UD treebanks so that they use shared formatting, feature defs, etc."
     script:
       - "mkdir -p assets/preprocess"
-      - python scripts/conllu2tsv.py 
-      - python scripts/norm_lemma.py 
-      - python scripts/remove_perseus_nec.py
+      - python scripts/update_conllu.py
       - python scripts/analyze_feats.py 
-      - "mkdir -p assets/processed"
-      - python scripts/tsv2conllu.py 
     outputs:
-      - "assets/processed/${vars.treebank_pers_data}-train.conllu"
-      - "assets/processed/${vars.treebank_pers_data}-test.conllu"
-      - "assets/processed/${vars.treebank_proi_data}-train.conllu"
-      - "assets/processed/${vars.treebank_proi_data}-dev.conllu"
-      - "assets/processed/${vars.treebank_proi_data}-test.conllu"
-      - "assets/processed/${vars.treebank_ittb_data}-train.conllu"
-      - "assets/processed/${vars.treebank_ittb_data}-dev.conllu"
-      - "assets/processed/${vars.treebank_ittb_data}-test.conllu"
-      - "assets/processed/${vars.treebank_llct_data}-train.conllu"
-      - "assets/processed/${vars.treebank_llct_data}-dev.conllu"
-      - "assets/processed/${vars.treebank_llct_data}-test.conllu"
-      - "assets/processed/${vars.treebank_udan_data}-train.conllu"
-      - "assets/processed/${vars.treebank_udan_data}-dev.conllu"
-      - "assets/processed/${vars.treebank_udan_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_pers_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_pers_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_proi_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_proi_data}-dev.conllu"
+      - "assets/preprocess/${vars.treebank_proi_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_ittb_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_ittb_data}-dev.conllu"
+      - "assets/preprocess/${vars.treebank_ittb_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_llct_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_llct_data}-dev.conllu"
+      - "assets/preprocess/${vars.treebank_llct_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_udan_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_udan_data}-dev.conllu"
+      - "assets/preprocess/${vars.treebank_udan_data}-test.conllu"
 
   - name: convert
     help: "Convert the data to spaCy's format"
@@ -129,85 +109,85 @@ commands:
       - "mkdir -p corpus/test"
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_pers_data}-train.conllu 
+        assets/preprocess/${vars.treebank_pers_data}-train.conllu 
+        corpus/ 
+        --converter conllu 
+        --n-sents 10
+      - >-
+        python -m spacy convert
+        assets/preprocess/${vars.treebank_pers_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_pers_data}-test.conllu 
+        assets/preprocess/${vars.treebank_proi_data}-train.conllu 
+        corpus/ 
+        --converter conllu 
+        --n-sents 10
+      - >-
+        python -m spacy convert
+        assets/preprocess/${vars.treebank_proi_data}-dev.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_proi_data}-train.conllu 
+        assets/preprocess/${vars.treebank_proi_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_proi_data}-dev.conllu 
+        assets/preprocess/${vars.treebank_ittb_data}-train.conllu 
+        corpus/ 
+        --converter conllu 
+        --n-sents 10
+      - >-
+        python -m spacy convert
+        assets/preprocess/${vars.treebank_ittb_data}-dev.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_proi_data}-test.conllu 
+        assets/preprocess/${vars.treebank_ittb_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_ittb_data}-train.conllu 
+        assets/preprocess/${vars.treebank_llct_data}-train.conllu 
+        corpus/ 
+        --converter conllu 
+        --n-sents 10
+      - >-
+        python -m spacy convert
+        assets/preprocess/${vars.treebank_llct_data}-dev.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_ittb_data}-dev.conllu 
+        assets/preprocess/${vars.treebank_llct_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_ittb_data}-test.conllu 
+        assets/preprocess/${vars.treebank_udan_data}-train.conllu 
+        corpus/ 
+        --converter conllu 
+        --n-sents 10
+      - >-
+        python -m spacy convert
+        assets/preprocess/${vars.treebank_udan_data}-dev.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
       - >-
         python -m spacy convert
-        assets/processed/${vars.treebank_llct_data}-train.conllu 
-        corpus/ 
-        --converter conllu 
-        --n-sents 10 
-      - >-
-        python -m spacy convert
-        assets/processed/${vars.treebank_llct_data}-dev.conllu 
-        corpus/ 
-        --converter conllu 
-        --n-sents 10 
-      - >-
-        python -m spacy convert
-        assets/processed/${vars.treebank_llct_data}-test.conllu 
-        corpus/ 
-        --converter conllu 
-        --n-sents 10 
-      - >-
-        python -m spacy convert
-        assets/processed/${vars.treebank_udan_data}-train.conllu 
-        corpus/ 
-        --converter conllu 
-        --n-sents 10 
-      - >-
-        python -m spacy convert
-        assets/processed/${vars.treebank_udan_data}-dev.conllu 
-        corpus/ 
-        --converter conllu 
-        --n-sents 10 
-      - >-
-        python -m spacy convert
-        assets/processed/${vars.treebank_udan_data}-test.conllu 
+        assets/preprocess/${vars.treebank_udan_data}-test.conllu 
         corpus/ 
         --converter conllu 
         --n-sents 10 
@@ -215,20 +195,20 @@ commands:
       - sh -c 'mv corpus/*dev.spacy corpus/dev/'
       - sh -c 'mv corpus/*test.spacy corpus/test/'
     deps:
-      - "assets/processed/${vars.treebank_pers_data}-train.conllu"
-      - "assets/processed/${vars.treebank_pers_data}-test.conllu"
-      - "assets/processed/${vars.treebank_proi_data}-train.conllu"
-      - "assets/processed/${vars.treebank_proi_data}-dev.conllu"
-      - "assets/processed/${vars.treebank_proi_data}-test.conllu"
-      - "assets/processed/${vars.treebank_ittb_data}-train.conllu"
-      - "assets/processed/${vars.treebank_ittb_data}-dev.conllu"
-      - "assets/processed/${vars.treebank_ittb_data}-test.conllu"
-      - "assets/processed/${vars.treebank_llct_data}-train.conllu"
-      - "assets/processed/${vars.treebank_llct_data}-dev.conllu"
-      - "assets/processed/${vars.treebank_llct_data}-test.conllu"
-      - "assets/processed/${vars.treebank_udan_data}-train.conllu"
-      - "assets/processed/${vars.treebank_udan_data}-dev.conllu"
-      - "assets/processed/${vars.treebank_udan_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_pers_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_pers_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_proi_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_proi_data}-dev.conllu"
+      - "assets/preprocess/${vars.treebank_proi_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_ittb_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_ittb_data}-dev.conllu"
+      - "assets/preprocess/${vars.treebank_ittb_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_llct_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_llct_data}-dev.conllu"
+      - "assets/preprocess/${vars.treebank_llct_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_udan_data}-train.conllu"
+      - "assets/preprocess/${vars.treebank_udan_data}-dev.conllu"
+      - "assets/preprocess/${vars.treebank_udan_data}-test.conllu"
     outputs:
       - "corpus/train/${vars.treebank_pers_data}-train.spacy"
       - "corpus/train/${vars.treebank_proi_data}-train.spacy"      
@@ -244,26 +224,6 @@ commands:
       - "corpus/test/${vars.treebank_ittb_data}-test.spacy"
       - "corpus/test/${vars.treebank_llct_data}-test.spacy"
       - "corpus/test/${vars.treebank_udan_data}-test.spacy"
-  
-  - name: "norm-corpus"
-    help: "Convert norm attribute to u-v and i-j norm"
-    script:
-      - python scripts/norm_docbin.py
-    outputs:
-      - "corpus/train/${vars.treebank_pers_data}-train.spacy"
-      - "corpus/train/${vars.treebank_proi_data}-train.spacy"      
-      - "corpus/train/${vars.treebank_ittb_data}-train.spacy"      
-      - "corpus/train/${vars.treebank_llct_data}-train.spacy"
-      - "corpus/train/${vars.treebank_udan_data}-train.spacy"
-      - "corpus/dev/${vars.treebank_proi_data}-dev.spacy"
-      - "corpus/dev/${vars.treebank_ittb_data}-dev.spacy"
-      - "corpus/dev/${vars.treebank_llct_data}-dev.spacy"
-      - "corpus/dev/${vars.treebank_udan_data}-dev.spacy"
-      - "corpus/test/${vars.treebank_pers_data}-test.spacy"
-      - "corpus/test/${vars.treebank_proi_data}-test.spacy"
-      - "corpus/test/${vars.treebank_ittb_data}-test.spacy"
-      - "corpus/test/${vars.treebank_llct_data}-test.spacy"
-      - "corpus/test/${vars.treebank_udan_data}-test.spacy"      
 
   - name: init-labels
     help: "Initialize labels for components"
@@ -530,23 +490,6 @@ commands:
     outputs:
       - "metrics/{vars.package_name}lg-{vars.package_version}.json"
       - training/lg/model-assembled            
-
-  - name: evaluate_assemble_sm
-    help: "Evaluate model on the test data and save the metrics"
-    script:
-      - >-
-        python -m spacy evaluate 
-        ./training/sm/model-assembled
-        ./corpus/test/
-        --output ./metrics/${vars.lang}_${vars.package_name}_assemble_sm_${vars.package_version}.json 
-        --code scripts/functions.py
-        --gpu-id ${vars.gpu}
-    deps:
-      - "training/sm/model-best"
-      - "corpus/test/"
-    outputs:
-      - "metrics/${vars.lang}_${vars.package_name}_assemble_sm_${vars.package_version}.json"
-
 
   - name: assemble-meta_sm
     help: "Assemble meta.json files so that all metrics are included"
