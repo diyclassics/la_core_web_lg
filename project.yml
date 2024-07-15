@@ -5,7 +5,7 @@ vars:
   config: "config_lg"
   lang: "la"
   package_name: "core_web_"
-  package_version: "3.7.5"
+  package_version: "3.7.6"
   gpu: 0
   treebank_pers: "UD_Latin-Perseus"
   treebank_proi: "UD_Latin-PROIEL"
@@ -17,6 +17,8 @@ vars:
   treebank_ittb_data: "MM-la_ittb-ud"
   treebank_llct_data: "MM-la_llct-ud"
   treebank_udan_data: "MM-la_udante-ud"
+  treebank_lasl_data: "MM-la_lasla-xx"
+
   # NER vars
   ud_ner_train: "ner/ud-ner-train.json"
   ud_ner_dev: "ner/ud-ner-dev.json"
@@ -26,9 +28,14 @@ vars:
 directories: ["assets", "corpus", "training", "configs", "metrics", "packages", "scripts"]
 
 assets:
-  - dest: "assets/original/"
+  - dest: "assets/original/ud"
     git:
       repo: "https://github.com/fjambe/Latin-variability"
+      branch: "main"
+      path: ""
+  - dest: "assets/original/lasla"
+    git:
+      repo: "https://github.com/CIRCSE/LASLA"
       branch: "main"
       path: ""
 
@@ -39,24 +46,34 @@ workflows:
     - convert 
     - init-labels
     - train_sm
+    - train-lemma_sm
     - train_md
-    - train_lg        
+    - train-lemma_md    
+    - train_lg   
+    - train-lemma_lg    
+    - train_trf     
+    - train-lemma_trf    
     - evaluate_sm
     - evaluate_md
     - evaluate_lg    
+    - evaluate_trf
     - convert-ner
     - train-ner_sm
     - train-ner_md
-    - train-ner_lg        
+    - train-ner_lg
+    - train-ner_trf        
     - assemble_sm
     - assemble_md
     - assemble_lg
+    - assemble_trf
     - assemble-meta_sm
     - assemble-meta_md
     - assemble-meta_lg     
+    - assemble-meta_trf
     - package_sm
     - package_md
-    - package_lg        
+    - package_lg       
+    - package_trf 
     - document    
     # - clean
 
@@ -64,20 +81,30 @@ commands:
   - name: assets
     help: "Download assets"
     script:
-      - mkdir -p assets/original
-      - sh -c "rm -rf assets/original/*" 
-      - "mkdir -p assets/temp"
+      - "mkdir -p assets/original/ud"
+      - "mkdir -p assets/original/lasla"
+      - sh -c "rm -rf assets/original/ud/*"
+      - sh -c "rm -rf assets/original/lasla/*" 
+      - "mkdir -p assets/temp/ud"
+      - "mkdir -p assets/temp/lasla"
       - python -m spacy project assets
-      - cp -r assets/original/morpho_harmonization/morpho-harmonized-treebanks/ assets/temp
-      - sh -c "rm -rf assets/original/*"
-      - cp -r assets/temp/ assets/original
-      - sh -c "rm -rf assets/temp"
+      - sh -c "cp -r assets/original/ud/morpho_harmonization/morpho-harmonized-treebanks/ assets/temp/ud"
+      - sh -c "rm -rf assets/original/ud/*"
+      - sh -c "cp -r assets/temp/ud assets/original/ud"
+      - sh -c "rm -rf assets/temp/ud"
+      - sh -c "cp -r assets/original/lasla/conllup/ assets/temp/lasla"
+      - python scripts/prep_lasla.py
+      - sh -c "rm -rf assets/original/lasla/*"
+      - sh -c "cp -r assets/temp/lasla/lasla.conllu assets/original/lasla/MM-la_lasla-xx-train.conllu"
+      - sh -c "rm -rf assets/temp/lasla"
+      - python scripts/save_lookups.py
     outputs:
-      - "assets/original/${vars.treebank_pers}"
-      - "assets/original/${vars.treebank_proi}"
-      - "assets/original/${vars.treebank_ittb}"
-      - "assets/original/${vars.treebank_udan}"
-      - "assets/original/${vars.treebank_llct}"
+      - "assets/original/ud/${vars.treebank_pers}"
+      - "assets/original/ud/${vars.treebank_proi}"
+      - "assets/original/ud/${vars.treebank_ittb}"
+      - "assets/original/ud/${vars.treebank_udan}"
+      - "assets/original/ud/${vars.treebank_llct}"
+      - "assets/original/lasla/lasla.conllu"
 
   - name: preprocess
     help: "Convert different UD treebanks so that they use shared formatting, feature defs, etc."
@@ -100,6 +127,7 @@ commands:
       - "assets/preprocess/${vars.treebank_udan_data}-train.conllu"
       - "assets/preprocess/${vars.treebank_udan_data}-dev.conllu"
       - "assets/preprocess/${vars.treebank_udan_data}-test.conllu"
+      - "assets/preprocess/${vars.treebank_lasl_data}-train.conllu"
 
   - name: convert
     help: "Convert the data to spaCy's format"
@@ -107,6 +135,15 @@ commands:
       - "mkdir -p corpus/train"
       - "mkdir -p corpus/dev"
       - "mkdir -p corpus/test"
+      - "mkdir -p corpus/lemma/train"
+      - "mkdir -p corpus/lemma/dev"
+      - "mkdir -p corpus/lemma/test"
+      - >-
+        python -m spacy convert
+        assets/preprocess/${vars.treebank_lasl_data}-train.conllu 
+        corpus/ 
+        --converter conllu 
+        --n-sents 10
       - >-
         python -m spacy convert
         assets/preprocess/${vars.treebank_pers_data}-train.conllu 
@@ -191,10 +228,16 @@ commands:
         corpus/ 
         --converter conllu 
         --n-sents 10 
-      - sh -c 'mv corpus/*train.spacy corpus/train/'
-      - sh -c 'mv corpus/*dev.spacy corpus/dev/'
-      - sh -c 'mv corpus/*test.spacy corpus/test/'
+      - sh -c 'mv corpus/*lasla*.spacy corpus/lemma/train'
+      - sh -c 'cp corpus/*train.spacy corpus/train/'
+      - sh -c 'cp corpus/*dev.spacy corpus/dev/'
+      - sh -c 'cp corpus/*test.spacy corpus/test/'
+      - sh -c 'mv corpus/*train.spacy corpus/lemma/train/'
+      - sh -c 'mv corpus/*dev.spacy corpus/lemma/dev/'
+      - sh -c 'mv corpus/*test.spacy corpus/lemma/test/'
+
     deps:
+      - "assets/preprocess/${vars.treebank_lasl_data}-train.conllu"
       - "assets/preprocess/${vars.treebank_pers_data}-train.conllu"
       - "assets/preprocess/${vars.treebank_pers_data}-test.conllu"
       - "assets/preprocess/${vars.treebank_proi_data}-train.conllu"
@@ -224,6 +267,21 @@ commands:
       - "corpus/test/${vars.treebank_ittb_data}-test.spacy"
       - "corpus/test/${vars.treebank_llct_data}-test.spacy"
       - "corpus/test/${vars.treebank_udan_data}-test.spacy"
+      - "corpus/lemma/train/${vars.treebank_lasl_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_pers_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_proi_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_ittb_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_llct_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_udan_data}-train.spacy"
+      - "corpus/lemma/dev/${vars.treebank_proi_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_ittb_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_llct_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_udan_data}-dev.spacy"
+      - "corpus/lemma/test/${vars.treebank_pers_data}-test.spacy"
+      - "corpus/lemma/test/${vars.treebank_proi_data}-test.spacy"
+      - "corpus/lemma/test/${vars.treebank_ittb_data}-test.spacy"
+      - "corpus/lemma/test/${vars.treebank_llct_data}-test.spacy"
+      - "corpus/lemma/test/${vars.treebank_udan_data}-test.spacy"
 
   - name: init-labels
     help: "Initialize labels for components"
@@ -240,7 +298,6 @@ commands:
     deps:
       - "corpus/train"
       - "corpus/dev"
-      - "corpus/test"
       - "configs/config_sm.cfg"
     outputs:
       - "corpus/labels/morphologizer.json"
@@ -271,14 +328,37 @@ commands:
       - "corpus/dev/${vars.treebank_ittb_data}-dev.spacy"
       - "corpus/dev/${vars.treebank_llct_data}-dev.spacy"
       - "corpus/dev/${vars.treebank_udan_data}-dev.spacy"
-      - "corpus/test/${vars.treebank_pers_data}-test.spacy"
-      - "corpus/test/${vars.treebank_proi_data}-test.spacy"
-      - "corpus/test/${vars.treebank_ittb_data}-test.spacy"
-      - "corpus/test/${vars.treebank_llct_data}-test.spacy"
-      - "corpus/test/${vars.treebank_udan_data}-test.spacy"    
       - "configs/config_sm.cfg"
     outputs:
       - "training/sm/model-best"
+
+  - name: train-lemma_sm
+    help: "Retrain tagger/parser/etc. on Latin UD treebanks and LASLA"
+    script:
+      - "mkdir -p training/sm/lemma"
+      - >-
+        python -m spacy train 
+        configs/lemma_config_sm.cfg
+        --output training/sm/lemma
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/lemma/train
+        --paths.dev corpus/lemma/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/lemma/train/${vars.treebank_pers_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_proi_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_ittb_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_llct_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_udan_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_lasl_data}-train.spacy"
+      - "corpus/lemma/dev/${vars.treebank_proi_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_ittb_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_llct_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_udan_data}-dev.spacy"
+      - "configs/lemma_config_sm.cfg"
+    outputs:
+      - "training/sm/lemma/model-best"
 
   - name: train_md
     help: "Train tagger/parser/etc. on Latin UD treebanks"
@@ -312,6 +392,35 @@ commands:
     outputs:
       - "training/md/model-best"      
 
+  - name: train-lemma_md
+    help: "Retrain tagger/parser/etc. on Latin UD treebanks and LASLA"
+    script:
+      - "mkdir -p training/md/lemma"
+      - >-
+        python -m spacy train 
+        configs/lemma_config_md.cfg
+        --output training/md/lemma
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/lemma/train
+        --paths.dev corpus/lemma/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/lemma/train/${vars.treebank_pers_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_proi_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_ittb_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_llct_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_udan_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_lasl_data}-train.spacy"
+      - "corpus/lemma/dev/${vars.treebank_proi_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_ittb_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_llct_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_udan_data}-dev.spacy"
+      - "configs/lemma_config_md.cfg"
+    outputs:
+      - "training/md/lemma/model-best"
+
+
   - name: train_lg
     help: "Train tagger/parser/etc. on Latin UD treebanks"
     script:
@@ -342,20 +451,109 @@ commands:
       - "corpus/test/${vars.treebank_udan_data}-test.spacy"    
       - "configs/config_lg.cfg"
     outputs:
-      - "training/lg/model-best"    
+      - "training/lg/model-best"   
+
+  - name: train-lemma_lg
+    help: "Retrain tagger/parser/etc. on Latin UD treebanks and LASLA"
+    script:
+      - "mkdir -p training/lg/lemma"
+      - >-
+        python -m spacy train 
+        configs/lemma_config_lg.cfg
+        --output training/lg/lemma
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/lemma/train
+        --paths.dev corpus/lemma/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/lemma/train/${vars.treebank_pers_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_proi_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_ittb_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_llct_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_udan_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_lasl_data}-train.spacy"
+      - "corpus/lemma/dev/${vars.treebank_proi_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_ittb_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_llct_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_udan_data}-dev.spacy"
+      - "configs/lemma_config_lg.cfg"
+    outputs:
+      - "training/lg/lemma/model-best"
+
+
+  - name: train_trf
+    help: "Train tagger/parser/etc. on Latin UD treebanks"
+    script:
+      - >-
+        python -m spacy train 
+        configs/config_trf.cfg
+        --output training/trf
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/train
+        --paths.dev corpus/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/train/${vars.treebank_pers_data}-train.spacy"
+      - "corpus/train/${vars.treebank_proi_data}-train.spacy"      
+      - "corpus/train/${vars.treebank_ittb_data}-train.spacy"      
+      - "corpus/train/${vars.treebank_llct_data}-train.spacy"
+      - "corpus/train/${vars.treebank_udan_data}-train.spacy"
+      - "corpus/dev/${vars.treebank_proi_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_ittb_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_llct_data}-dev.spacy"
+      - "corpus/dev/${vars.treebank_udan_data}-dev.spacy"
+      - "corpus/test/${vars.treebank_pers_data}-test.spacy"
+      - "corpus/test/${vars.treebank_proi_data}-test.spacy"
+      - "corpus/test/${vars.treebank_ittb_data}-test.spacy"
+      - "corpus/test/${vars.treebank_llct_data}-test.spacy"
+      - "corpus/test/${vars.treebank_udan_data}-test.spacy"    
+      - "configs/config_trf.cfg"
+    outputs:
+      - "training/trf/model-best"
+
+  - name: train-lemma_trf
+    help: "Retrain tagger/parser/etc. on Latin UD treebanks and LASLA"
+    script:
+      - "mkdir -p training/trf/lemma"
+      - >-
+        python -m spacy train 
+        configs/lemma_config_trf.cfg
+        --output training/trf/lemma
+        --gpu-id ${vars.gpu} 
+        --paths.train corpus/lemma/train
+        --paths.dev corpus/lemma/dev
+        --nlp.lang=${vars.lang}
+        --code scripts/functions.py
+    deps:
+      - "corpus/lemma/train/${vars.treebank_pers_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_proi_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_ittb_data}-train.spacy"      
+      - "corpus/lemma/train/${vars.treebank_llct_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_udan_data}-train.spacy"
+      - "corpus/lemma/train/${vars.treebank_lasl_data}-train.spacy"
+      - "corpus/lemma/dev/${vars.treebank_proi_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_ittb_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_llct_data}-dev.spacy"
+      - "corpus/lemma/dev/${vars.treebank_udan_data}-dev.spacy"
+      - "configs/lemma_config_trf.cfg"
+    outputs:
+      - "training/trf/lemma/model-best"
+
 
   - name: evaluate_sm
     help: "Evaluate model on the test data and save the metrics"
     script:
       - >-
         python -m spacy evaluate 
-        ./training/sm/model-best 
+        ./training/sm/lemma/model-best 
         ./corpus/test/
         --output ./metrics/${vars.lang}_${vars.package_name}sm_${vars.package_version}.json 
         --code scripts/functions.py
         --gpu-id ${vars.gpu}
     deps:
-      - "training/sm/model-best"
+      - "training/sm/lemma/model-best"
       - "corpus/test/"
     outputs:
       - "metrics/${vars.lang}_${vars.package_name}sm_${vars.package_version}.json"
@@ -365,32 +563,47 @@ commands:
     script:
       - >-
         python -m spacy evaluate 
-        ./training/md/model-best 
+        ./training/md/lemma/model-best 
         ./corpus/test/
         --output ./metrics/${vars.lang}_${vars.package_name}md_${vars.package_version}.json 
         --code scripts/functions.py
         --gpu-id ${vars.gpu}
     deps:
-      - "training/md/model-best"
+      - "training/md/lemma/model-best"
       - "corpus/test/"
     outputs:
       - "metrics/${vars.lang}_${vars.package_name}md_${vars.package_version}.json"
-
   - name: evaluate_lg
     help: "Evaluate model on the test data and save the metrics"
     script:
       - >-
         python -m spacy evaluate 
-        ./training/lg/model-best 
+        ./training/lg/lemma/model-best 
         ./corpus/test/
         --output ./metrics/${vars.lang}_${vars.package_name}lg_${vars.package_version}.json 
         --code scripts/functions.py
         --gpu-id ${vars.gpu}
     deps:
-      - "training/lg/model-best"
+      - "training/lg/lemma/model-best"
       - "corpus/test/"
     outputs:
-      - "metrics/${vars.lang}_${vars.package_name}lg_${vars.package_version}.json"            
+      - "metrics/${vars.lang}_${vars.package_name}lg_${vars.package_version}.json"
+
+  - name: evaluate_trf
+    help: "Evaluate model on the test data and save the metrics"
+    script:
+      - >-
+        python -m spacy evaluate 
+        ./training/trf/lemma/model-best 
+        ./corpus/test/
+        --output ./metrics/${vars.lang}_${vars.package_name}trf_${vars.package_version}.json 
+        --code scripts/functions.py
+        --gpu-id ${vars.gpu}
+    deps:
+      - "training/trf/lemma/model-best"
+      - "corpus/test/"
+    outputs:
+      - "metrics/${vars.lang}_${vars.package_name}trf_${vars.package_version}.json"
 
   - name: convert-ner
     help: "Convert the NER data to spaCy's binary format"
@@ -447,7 +660,19 @@ commands:
       - "corpus/ner/train"
       - "corpus/ner/dev"
     outputs:
-      - "training/lg/ner/model-best"            
+      - "training/lg/ner/model-best"     
+
+  - name: train-ner_trf
+    help: "Train the NER model for the model"
+    script:
+      - "mkdir -p training/trf/ner"
+      - "python -m spacy train configs/ner_config_trf.cfg --output training/trf/ner --paths.train corpus/ner/train --paths.dev corpus/ner/dev --training.eval_frequency 10 --training.patience 100 --gpu-id ${vars.gpu} --code scripts/functions.py"
+    deps:
+      - "configs/ner_config_trf.cfg"
+      - "corpus/ner/train"
+      - "corpus/ner/dev"
+    outputs:
+      - "training/trf/ner/model-best"
 
   - name: assemble_sm
     help: "Assemble core model, i.e. add NER component to dep model"
@@ -491,6 +716,21 @@ commands:
       - "metrics/{vars.package_name}lg-{vars.package_version}.json"
       - training/lg/model-assembled            
 
+  - name: assemble_trf
+    help: "Assemble core model, i.e. add NER component to dep model"
+    script:
+      - >-
+        python -m spacy assemble
+        configs/config-core_trf.cfg
+        training/trf/model-assembled
+        --code scripts/functions.py
+    deps:
+      - "training/trf/model-best"
+    outputs:
+      - "metrics/{vars.package_name}lg-{vars.package_version}.json"
+      - training/trf/model-assembled            
+
+
   - name: assemble-meta_sm
     help: "Assemble meta.json files so that all metrics are included"
     script:
@@ -505,6 +745,12 @@ commands:
     help: "Assemble meta.json files so that all metrics are included"
     script:
       - "python scripts/assemble_meta.py --dep_meta training/lg/model-best/meta.json --ner_meta training/lg/ner/model-best/meta.json --assembled_meta training/lg/model-assembled/meta.json"      
+
+  - name: assemble-meta_trf
+    help: "Assemble meta.json files so that all metrics are included"
+    script:
+      - "python scripts/assemble_meta.py --dep_meta training/trf/model-best/meta.json --ner_meta training/trf/ner/model-best/meta.json --assembled_meta training/trf/model-assembled/meta.json"      
+
 
   - name: package_sm
     help: "Package the trained core model"
@@ -557,12 +803,29 @@ commands:
     outputs_no_cache:
       - "packages/${vars.lang}_${vars.package_name}lg-${vars.package_version}/dist/en_${vars.package_name}lg-${vars.package_version}.tar.gz"                    
 
+  - name: package_trf
+    help: "Package the trained core model"
+    script:
+      - >-
+        python -m spacy package 
+        training/trf/model-assembled packages 
+        --name ${vars.package_name}trf 
+        --version ${vars.package_version}
+        --meta data/meta.json
+        --code scripts/functions.py
+        --force
+        --build wheel
+    deps:
+      - "training/trf/model-assembled"
+    outputs_no_cache:
+      - "packages/${vars.lang}_${vars.package_name}trf-${vars.package_version}/dist/en_${vars.package_name}trf-${vars.package_version}.tar.gz"                    
+
   - name: document
     help: "Document ${vars.package_name}xx"
     script:
       - >-
         python -m spacy project document 
-        --output README.md
+        --output README.md --force
     outputs:
       - "README.md"
 
