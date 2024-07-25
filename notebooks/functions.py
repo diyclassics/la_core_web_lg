@@ -194,10 +194,17 @@ def make_customize_tokenizer():
 from spacy.language import Language
 from spacy.lookups import load_lookups
 from spacy.tokens import Token
+from spacy.lookups import Lookups
 import string
 
 blank_nlp = spacy.blank("la")
-lookups_data = load_lookups(lang=blank_nlp.vocab.lang, tables=["lemma_lookup"])
+lookups = Lookups()
+
+try:
+    lookups_data = load_lookups(lang=blank_nlp.vocab.lang, tables=["lemma_lookup"])
+except:
+    lookups_data = lookups.from_disk("scripts/lemmatizer_lookups")
+
 LOOKUPS = lookups_data.get_table("lemma_lookup")
 
 predicted_lemma_getter = lambda token: token.lemma_

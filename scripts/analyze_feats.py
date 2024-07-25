@@ -60,6 +60,8 @@ def update_feats_mood(token):
         )
 
     if is_infinitive(feats, misc):
+        token["upos"] = "VERB"
+        token["xpos"] = "verb"
         if feats.get("Aspect", None):
             if feats["Aspect"] == "Perf":
                 feats["Tense"] = "Perf"
@@ -223,6 +225,108 @@ def update_xpos(treebank, token):
             token["xpos"] = udante_map.get(token["xpos"][0], "_")
         else:
             token["xpos"] = "_"
+    elif treebank == "lasla":
+        lasla_map = {
+            "ADJ-C": "adjective",
+            "ADJ-C1": "adjective",
+            "ADJ-C2": "adjective",
+            "ADJ-C3": "adjective",
+            "ADJ-C4": "adjective",
+            "ADJ-C5": "adjective",
+            "ADJ-C6": "adjective",
+            "ADJ-C7": "adjective",
+            "ADJ-D2": "adjective",
+            "ADJ-D3": "adjective",
+            "ADJ-D4": "adjective",
+            "ADP-R": "preposition",
+            "ADV-D5": "adverb",
+            "ADV-D6": "adverb",
+            "ADV-M": "adverb",
+            "ADV-N": "adverb",
+            "ADV-O": "adverb",
+            "ADV-P": "adverb",
+            "ADV-Q": "adverb",
+            "ADV-T": "adverb",
+            "AUX-#": "verb",
+            "AUX-B6": "verb",
+            "AUX-Z1": "verb",
+            "AUX-Z2": "verb",
+            "AUX-Z3": "verb",
+            "AUX-Z4": "verb",
+            "AUX-Z5": "verb",
+            "AUX-Z6": "verb",
+            "CCONJ-M": "conjunction",
+            "CCONJ-P": "conjunction",
+            "CCONJ-Q": "conjunction",
+            "CCONJ-S": "conjunction",
+            "CCONJ-T": "conjunction",
+            "DET-C1": "adjective",
+            "DET-C2": "adjective",
+            "DET-D1": "adjective",
+            "DET-F": "adjective",
+            "DET-H": "adjective",
+            "DET-I": "adjective",
+            "DET-J": "adjective",
+            "DET-K": "adjective",
+            "DET-L": "adjective",
+            "DET-L2": "adjective",
+            "DET-M": "adjective",
+            "INTJ-U": "interjection",
+            "NOUN-A1": "noun",
+            "NOUN-A2": "noun",
+            "NOUN-A3": "noun",
+            "NOUN-A4": "noun",
+            "NOUN-A5": "noun",
+            "NOUN-A6": "noun",
+            "NOUN-A7": "noun",
+            "NOUN-A8": "noun",
+            "NUM-D1": "number",
+            "NUM-D2": "number",
+            "NUM-D3": "number",
+            "NUM-D6": "number",
+            "PART-M": "particle",
+            "PART-O": "particle",
+            "PART-P": "particle",
+            "PART-S": "particle",
+            "PART-X": "particle",
+            "PRON-E": "pronoun",
+            "PRON-G": "pronoun",
+            "PRON-J": "pronoun",
+            "PRON-K": "pronoun",
+            "PRON-L": "pronoun",
+            "PROPN-A1": "proper_noun",
+            "PROPN-A2": "proper_noun",
+            "PROPN-A3": "proper_noun",
+            "PROPN-A4": "proper_noun",
+            "PROPN-A5": "proper_noun",
+            "PROPN-A6": "proper_noun",
+            "PROPN-A7": "proper_noun",
+            "SCONJ-N": "conjunction",
+            "SCONJ-S": "conjunction",
+            "SCONJ-T": "conjunction",
+            "VERB-B1": "verb",
+            "VERB-B2": "verb",
+            "VERB-B3": "verb",
+            "VERB-B4": "verb",
+            "VERB-B5": "verb",
+            "VERB-B6": "verb",
+            "VERB-Y1": "verb",
+            "VERB-Y2": "verb",
+            "VERB-Y3": "verb",
+            "VERB-Y4": "verb",
+            "VERB-Y5": "verb",
+            "VERB-Y6": "verb",
+            "X-0": "unknown",
+            "_-punc": "punc",
+        }
+        if token["upos"] and token["xpos"]:
+            token_key = "-".join([token["upos"], token["xpos"]])
+            if token_key in lasla_map:
+                token["xpos"] = lasla_map[token_key]
+            else:
+                token["xpos"] = "_"
+        else:
+            token["xpos"] = "_"
     else:
         pass
     return token
@@ -241,18 +345,50 @@ def update_participles(token):
     return token
 
 
+def update_sum(token):
+    if token["lemma"] == "sum":
+        token["upos"] = "AUX"
+        token["xpos"] = "verb"
+    return token
+
+
+def update_det(token):
+    if token["lemma"] == "is":
+        token["upos"] = "PRON"
+        token["xpos"] = "pronoun"
+    elif token["lemma"] == "ipse":
+        token["upos"] = "DET"
+        token["xpos"] = "determiner"
+    elif token["lemma"] == "suus":
+        token["upos"] = "DET"
+        token["xpos"] = "determiner"
+    elif token["lemma"] == "sui":
+        token["upos"] = "PRON"
+        token["xpos"] = "pronoun"
+    return token
+
+
+def update_part(token):
+    if token["lemma"] == "non":
+        token["upos"] = "PART"
+        token["xpos"] = "particle"
+    return token
+
+
 def get_proper_noun(token):
     if token["xpos"] == "noun" and token["lemma"][0].isupper():
         token["xpos"] = "proper_noun"
     if token["xpos"] == "proper_noun" or token["upos"] == "PROPN":
         token["xpos"] = "proper_noun"
         token["upos"] = "PROPN"
+        token["form"] = token["form"].title()
         token["lemma"] = token["lemma"].title()
     return token
 
 
 def update_punct(token):
-    if token["upos"] == "PUNCT":
+    if token["upos"] == "PUNCT" or token["xpos"] == "punc":
+        token["upos"] = "PUNCT"
         token["xpos"] = "punc"
     return token
 
@@ -326,7 +462,7 @@ def misc_fix(token):
 
 
 for file in tqdm(files):
-    treebank = re.match(r".*preprocess/MM-la_(.*)-ud.*", file).group(1)
+    treebank = re.match(r".*preprocess/MM-la_(.*)-(ud|xx).*", file).group(1)
     serialization = []
     print(f"Processing {file} to update features...")
     with open(file) as f:
@@ -344,6 +480,12 @@ for file in tqdm(files):
                 token = update_numbers(token)
                 # PREPROCESS: Update participles for Latin
                 token = update_participles(token)
+                # PREPROCESS: Update 'sum'
+                token = update_sum(token)
+                # PREPROCESS: Update 'det'
+                token = update_det(token)
+                # PREPROCESS: Update 'part'
+                token = update_part(token)
                 # PREPROCESS: Get proper nouns
                 token = get_proper_noun(token)
                 # PREPROCESS: Update punctuation

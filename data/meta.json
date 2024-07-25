@@ -5,10 +5,12 @@
     "url": "https://diyclassics.github.io/",
     "license": "MIT",
     "sources": [
-        "UD_Latin-Perseus",
-        "UD_Latin-PROIEL",
-        "UD_Latin-ITTB",
-        "UD_Latin-LLCT",
-        "UD_Latin-UDante"
-    ]
+        "UD_Latin-Perseus (via Gamba/Zeman 2023)",
+        "UD_Latin-PROIEL (via Gamba/Zeman 2023)",
+        "UD_Latin-ITTB (via Gamba/Zeman 2023)",
+        "UD_Latin-LLCT (via Gamba/Zeman 2023",
+        "UD_Latin-UDante (via Gamba/Zeman 2023)",
+        "CIRCSE/LASLA: LASLA Corpus"
+    ],
+    "requirements":["spacy_lookups_data @ git+https://github.com/diyclassics/spacy-lookups-data.git#egg=spacy-lookups-data"]
 }

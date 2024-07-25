@@ -38,23 +38,29 @@ for file in tqdm(files):
         contents = f.read()
         sentences = parse(contents)
         for sentence in tqdm(sentences):
+            # check that token ids are in consecutive order
+            # cf. error in LASLA # sent_id = OvMETAM06-M-06-3
+            # also, `nonne` passim; TODO: Check LASLA files for other errors
+            ids = [token["id"] for token in sentence if type(token["id"]) is int]
+            if ids != list(range(1, len(ids) + 1)):
+                continue
             metadata = sentence.metadata
-            # PREPROCESS: Handle lowercase for first character
+            # PREPROCESS: Handle uppercase for first character
             if metadata["text"]:
                 metadata_lower_start = re.search(r"[a-zA-Z]", metadata["text"])
                 if metadata_lower_start:
                     metadata_lower_start = metadata_lower_start.start()
                     metadata["text"] = (
                         metadata["text"][:metadata_lower_start]
-                        + metadata["text"][metadata_lower_start].lower()
+                        + metadata["text"][metadata_lower_start].upper()
                         + metadata["text"][metadata_lower_start + 1 :]
                     )
             for token in sentence:
                 if token["form"].isalpha():
-                    token["form"] = token["form"].lower()
+                    token["form"] = token["form"].title()
                     break
             # PREPROCESS: Add final punctuation to Proiel metadata text
-            if "proi" in file:
+            if "proi" in file or "lasl" in file:
                 sentence.metadata["text"] = f'{sentence.metadata["text"]}.'
             for token in sentence:
                 # PREPROCESS: Norms lemmas
@@ -82,6 +88,23 @@ for file in tqdm(files):
                         "misc": None,
                     }
                 )
+            elif "lasl" in file:
+                sentence.append(
+                    {
+                        "id": last_token + 1,
+                        "form": ".",
+                        "lemma": ".",
+                        "upos": None,
+                        "xpos": "punc",
+                        "feats": None,
+                        "head": None,
+                        "deprel": None,
+                        "deps": None,
+                        "misc": None,
+                    }
+                )
+            else:
+                pass
             # Take out combined tokens; TODO: Learn to handle combined tokens in spaCy training
             sentence = sentence.filter(id=lambda x: type(x) is int)
             sentence.metadata = metadata

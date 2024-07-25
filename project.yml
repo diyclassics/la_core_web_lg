@@ -1,5 +1,5 @@
 title: "la_core_web_xx"
-description: "Code required to train spaCy-compatible sm, md, and lg core models for Latin, i.e pipeline with POS tagger, morphologizer, lemmatizer, dependency parser, and NER trained on all available Latin UD treebanks, i.e. Perseus, PROIEL, ITTB, UDante, and LLCT (see below). The md and lg models contains floret vectors trained on Wikipedia, Oscar, UD and—for lg—CC100-Latin data. NER is based on custom tagged data based on tagger output and manual annotation, supplemented by data from the Herodotos Project; this data is included in `assets/ner/`."
+description: "Code required to train spaCy-compatible sm, md, lg, and trf core models for Latin, i.e pipeline with POS tagger, morphologizer, lemmatizer, dependency parser, and NER trained on all available Latin UD treebanks, i.e. Perseus, PROIEL, ITTB, UDante, and LLCT (as currently normalized by Gamba/Zeman 2003; see `assets` below); the lemmatizer and tagger components are also trained on LASLA Corpus connlup files (see `assets` below).  The md and lg models contains floret vectors trained on Wikipedia, Oscar, UD and—for lg—CC100-Latin data. The trf model uses bert-base-multilingual-uncased. NER is based on custom tagged data based on tagger output and manual annotation, supplemented by data from the Herodotos Project; this data is included in `assets/ner/`."
 
 vars:
   config: "config_lg"
@@ -43,38 +43,38 @@ workflows:
   all:
     - assets 
     - preprocess 
-    - convert 
-    - init-labels
-    - train_sm
-    - train-lemma_sm
-    - train_md
-    - train-lemma_md    
-    - train_lg   
-    - train-lemma_lg    
-    - train_trf     
-    - train-lemma_trf    
-    - evaluate_sm
-    - evaluate_md
-    - evaluate_lg    
-    - evaluate_trf
-    - convert-ner
-    - train-ner_sm
-    - train-ner_md
-    - train-ner_lg
-    - train-ner_trf        
-    - assemble_sm
-    - assemble_md
-    - assemble_lg
-    - assemble_trf
-    - assemble-meta_sm
-    - assemble-meta_md
-    - assemble-meta_lg     
-    - assemble-meta_trf
-    - package_sm
-    - package_md
-    - package_lg       
-    - package_trf 
-    - document    
+    # - convert 
+    # - init-labels
+    # - train_sm
+    # - train-lemma_sm
+    # - train_md
+    # - train-lemma_md    
+    # - train_lg   
+    # - train-lemma_lg    
+    # - train_trf     
+    # - train-lemma_trf    
+    # - evaluate_sm
+    # - evaluate_md
+    # - evaluate_lg    
+    # - evaluate_trf
+    # - convert-ner
+    # - train-ner_sm
+    # - train-ner_md
+    # - train-ner_lg
+    # - train-ner_trf        
+    # - assemble_sm
+    # - assemble_md
+    # - assemble_lg
+    # - assemble_trf
+    #- assemble-meta_sm
+    # - assemble-meta_md
+    # - assemble-meta_lg     
+    # - assemble-meta_trf
+    # - package_sm
+    # - package_md
+    # - package_lg       
+    # - package_trf 
+    # - document    
     # - clean
 
 commands:
@@ -97,7 +97,6 @@ commands:
       - sh -c "rm -rf assets/original/lasla/*"
       - sh -c "cp -r assets/temp/lasla/lasla.conllu assets/original/lasla/MM-la_lasla-xx-train.conllu"
       - sh -c "rm -rf assets/temp/lasla"
-      - python scripts/save_lookups.py
     outputs:
       - "assets/original/ud/${vars.treebank_pers}"
       - "assets/original/ud/${vars.treebank_proi}"
@@ -825,7 +824,7 @@ commands:
     script:
       - >-
         python -m spacy project document 
-        --output README.md --force
+        --output README.md
     outputs:
       - "README.md"
 
