@@ -5,19 +5,21 @@ vars:
   config: "config_lg"
   lang: "la"
   package_name: "core_web_"
-  package_version: "3.7.6"
+  package_version: "3.7.7"
   gpu: 0
   treebank_pers: "UD_Latin-Perseus"
   treebank_proi: "UD_Latin-PROIEL"
   treebank_ittb: "UD_Latin-ITTB"
   treebank_llct: "UD_Latin-LLCT"
   treebank_udan: "UD_Latin-UDante"
+  treebank_lila: "UD_Latin-CIRCSE"
   treebank_pers_data: "MM-la_perseus-ud"
   treebank_proi_data: "MM-la_proiel-ud"
   treebank_ittb_data: "MM-la_ittb-ud"
   treebank_llct_data: "MM-la_llct-ud"
   treebank_udan_data: "MM-la_udante-ud"
   treebank_lasl_data: "MM-la_lasla-xx"
+  treebank_lila_data: "MM-la_lila-ud"
 
   # NER vars
   ud_ner_train: "ner/ud-ner-train.json"
@@ -38,43 +40,48 @@ assets:
       repo: "https://github.com/CIRCSE/LASLA"
       branch: "main"
       path: ""
+  - dest: "assets/original/lila"
+    git:
+      repo: "https://github.com/UniversalDependencies/UD_Latin-CIRCSE"
+      branch: "master"
+      path: ""
 
 workflows:
   all:
-    - assets 
-    - preprocess 
+    # - assets 
+    # - preprocess 
     # - convert 
-    # - init-labels
-    # - train_sm
-    # - train-lemma_sm
-    # - train_md
-    # - train-lemma_md    
-    # - train_lg   
-    # - train-lemma_lg    
-    # - train_trf     
-    # - train-lemma_trf    
-    # - evaluate_sm
-    # - evaluate_md
-    # - evaluate_lg    
-    # - evaluate_trf
-    # - convert-ner
-    # - train-ner_sm
-    # - train-ner_md
-    # - train-ner_lg
-    # - train-ner_trf        
-    # - assemble_sm
-    # - assemble_md
-    # - assemble_lg
-    # - assemble_trf
-    #- assemble-meta_sm
-    # - assemble-meta_md
-    # - assemble-meta_lg     
-    # - assemble-meta_trf
-    # - package_sm
-    # - package_md
-    # - package_lg       
-    # - package_trf 
-    # - document    
+    - init-labels
+    - train_sm
+    - train-lemma_sm
+    - train_md
+    - train-lemma_md    
+    - train_lg   
+    - train-lemma_lg    
+    - train_trf     
+    - train-lemma_trf    
+    - evaluate_sm
+    - evaluate_md
+    - evaluate_lg    
+    - evaluate_trf
+    - convert-ner
+    - train-ner_sm
+    - train-ner_md
+    - train-ner_lg
+    - train-ner_trf        
+    - assemble_sm
+    - assemble_md
+    - assemble_lg
+    - assemble_trf
+    - assemble-meta_sm
+    - assemble-meta_md
+    - assemble-meta_lg     
+    - assemble-meta_trf
+    - package_sm
+    - package_md
+    - package_lg       
+    - package_trf 
+    - document    
     # - clean
 
 commands:
@@ -90,27 +97,30 @@ commands:
       - python -m spacy project assets
       - sh -c "cp -r assets/original/ud/morpho_harmonization/morpho-harmonized-treebanks/ assets/temp/ud"
       - sh -c "rm -rf assets/original/ud/*"
-      - sh -c "cp -r assets/temp/ud assets/original/ud"
+      - sh -c "cp -r assets/temp/ud assets/original"
       - sh -c "rm -rf assets/temp/ud"
       - sh -c "cp -r assets/original/lasla/conllup/ assets/temp/lasla"
       - python scripts/prep_lasla.py
       - sh -c "rm -rf assets/original/lasla/*"
       - sh -c "cp -r assets/temp/lasla/lasla.conllu assets/original/lasla/MM-la_lasla-xx-train.conllu"
       - sh -c "rm -rf assets/temp/lasla"
+      # temporarily rename lila to train until more data is available
+      - sh -c "mv assets/original/lila/la_circse-ud-test.conllu assets/original/lila/MM-la_circse-ud-train.conllu"
     outputs:
       - "assets/original/ud/${vars.treebank_pers}"
       - "assets/original/ud/${vars.treebank_proi}"
       - "assets/original/ud/${vars.treebank_ittb}"
       - "assets/original/ud/${vars.treebank_udan}"
       - "assets/original/ud/${vars.treebank_llct}"
-      - "assets/original/lasla/lasla.conllu"
-
+      - "assets/original/lasla/MM-la_lasla-xx-train.conllu"
+      - "assets/original/lila/MM-la_circse-ud-train.conllu"
   - name: preprocess
     help: "Convert different UD treebanks so that they use shared formatting, feature defs, etc."
     script:
       - "mkdir -p assets/preprocess"
       - python scripts/update_conllu.py
       - python scripts/analyze_feats.py 
+      - python scripts/remorph_lasla.py
     outputs:
       - "assets/preprocess/${vars.treebank_pers_data}-train.conllu"
       - "assets/preprocess/${vars.treebank_pers_data}-test.conllu"
@@ -127,7 +137,7 @@ commands:
       - "assets/preprocess/${vars.treebank_udan_data}-dev.conllu"
       - "assets/preprocess/${vars.treebank_udan_data}-test.conllu"
       - "assets/preprocess/${vars.treebank_lasl_data}-train.conllu"
-
+      - "assets/preprocess/${vars.treebank_lila_data}-train.conllu"      
   - name: convert
     help: "Convert the data to spaCy's format"
     script:

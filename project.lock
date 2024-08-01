@@ -11,33 +11,37 @@ assets:
     - sh -c "cp -r assets/original/ud/morpho_harmonization/morpho-harmonized-treebanks/
       assets/temp/ud"
     - sh -c "rm -rf assets/original/ud/*"
-    - sh -c "cp -r assets/temp/ud assets/original/ud"
+    - sh -c "cp -r assets/temp/ud assets/original"
     - sh -c "rm -rf assets/temp/ud"
     - sh -c "cp -r assets/original/lasla/conllup/ assets/temp/lasla"
     - python scripts/prep_lasla.py
     - sh -c "rm -rf assets/original/lasla/*"
     - sh -c "cp -r assets/temp/lasla/lasla.conllu assets/original/lasla/MM-la_lasla-xx-train.conllu"
     - sh -c "rm -rf assets/temp/lasla"
+    - sh -c "cp assets/original/lila/la_circse-ud-test.conllu assets/original/lila/MM-la_circse-ud-train.conllu"
   deps: []
   outs:
     - path: assets/original/ud/UD_Latin-Perseus
-      md5: null
+      md5: 71abb647f2f9aa6c9b7d6adc8ddbb4ee
     - path: assets/original/ud/UD_Latin-PROIEL
-      md5: null
+      md5: f1de585eeb073ea45e67238f4a1b6304
     - path: assets/original/ud/UD_Latin-ITTB
-      md5: null
+      md5: 7755ab83ef87487945a1fbb53adc62d1
     - path: assets/original/ud/UD_Latin-UDante
-      md5: null
+      md5: 0a48c06f03c38221b394ab70ea293a8b
     - path: assets/original/ud/UD_Latin-LLCT
-      md5: null
-    - path: assets/original/lasla/lasla.conllu
-      md5: null
+      md5: acc0f7196f7033cedacd9277867ff1d7
+    - path: assets/original/lasla/MM-la_lasla-xx-train.conllu
+      md5: dec44b4993b4184b4d5286a171333650
+    - path: assets/original/lila/MM-la_circse-ud-train.conllu
+      md5: d616172aef8c1250c25ef230058ece5f
 preprocess:
   cmd: python -m weasel run preprocess
   script:
     - mkdir -p assets/preprocess
     - python scripts/update_conllu.py
     - python scripts/analyze_feats.py
+    - python scripts/remorph_lasla.py
   deps: []
   outs:
     - path: assets/preprocess/MM-la_perseus-ud-train.conllu
@@ -69,7 +73,9 @@ preprocess:
     - path: assets/preprocess/MM-la_udante-ud-test.conllu
       md5: 5dc4dfa1c54fad076b5764fc9b1fc27a
     - path: assets/preprocess/MM-la_lasla-xx-train.conllu
-      md5: 69af298391be5dbe91196e484087b1c6
+      md5: 81faf8bfe82ff424e77ca23f8fbf05cc
+    - path: assets/preprocess/MM-la_lila-ud-train.conllu
+      md5: null
 convert:
   cmd: python -m weasel run convert
   script:
@@ -118,7 +124,7 @@ convert:
     - sh -c 'mv corpus/*test.spacy corpus/lemma/test/'
   deps:
     - path: assets/preprocess/MM-la_lasla-xx-train.conllu
-      md5: 69af298391be5dbe91196e484087b1c6
+      md5: 81faf8bfe82ff424e77ca23f8fbf05cc
     - path: assets/preprocess/MM-la_perseus-ud-train.conllu
       md5: c0bb4f4825d5929cf39078d6512cac1a
     - path: assets/preprocess/MM-la_perseus-ud-test.conllu
@@ -177,7 +183,7 @@ convert:
     - path: corpus/test/MM-la_udante-ud-test.spacy
       md5: e6a3300919021eca5384e762614f75b2
     - path: corpus/lemma/train/MM-la_lasla-xx-train.spacy
-      md5: 15366194a05cd5a84b80a8bc08722a64
+      md5: 83dfb93121d054f70b567d27fcc25c34
     - path: corpus/lemma/train/MM-la_perseus-ud-train.spacy
       md5: c80eb61a8fdd64282562fd5000d7eedb
     - path: corpus/lemma/train/MM-la_proiel-ud-train.spacy
@@ -571,11 +577,11 @@ init-labels:
       corpus/train --paths.dev corpus/dev --nlp.lang=la --code scripts/functions.py
   deps:
     - path: corpus/train
-      md5: 7828034b27dff2de12fa380e022a41f6
+      md5: 417e3d5ba6a8fa85c0966729d594791c
     - path: corpus/dev
-      md5: 0742df9b9fa2ca743bf5a3c9d237009b
+      md5: 1af3189540deb063d7db8d29c6aeadeb
     - path: configs/config_sm.cfg
-      md5: 0408ff0a7e517f2dfb0891faa8e97ed1
+      md5: 47da09f1e15f3d29febbd902f637f513
   outs:
     - path: corpus/labels/morphologizer.json
       md5: 884a9bd63d8e3a8d70201a92ddb2dc47
@@ -584,7 +590,7 @@ init-labels:
     - path: corpus/labels/tagger.json
       md5: b97051ffb3b855412f87aed7c88756c5
     - path: corpus/labels/trainable_lemmatizer.json
-      md5: bb866b72371e6bb3536291393cd51ee8
+      md5: 9739f6317c2bde3d1845137e180c4814
 package:
   cmd: python -m spacy run package
   script:
@@ -629,14 +635,14 @@ convert-ner:
     - path: assets/ner/herodotos-ner-train.json
       md5: 3b53885b58f28ab1bbf5cfc32acd567a
     - path: scripts/convert.py
-      md5: 2fdf7eb940f2c437ab9a0f589824b6bc
+      md5: 769535cc137ae0c015852e51bc91f07d
   outs:
     - path: corpus/ner/train/ud_ner_train.spacy
-      md5: 3a8bb35a0f892d8d342d5fe266bfb400
+      md5: 0a704a7a84984e2591f1f5d7eb83c63a
     - path: corpus/ner/train/ud_ner_dev.spacy
       md5: null
     - path: corpus/ner/train/herodotos_ner_train.spacy
-      md5: 413c460501b388ef95418cc61735ff62
+      md5: fd0b95b69395a128c8ef0ffbe2e3677e
     - path: corpus/ner/train/herodotos_ner_dev.spacy
       md5: null
 create-ner-config:
@@ -887,28 +893,28 @@ train_sm:
       corpus/train --paths.dev corpus/dev --nlp.lang=la --code scripts/functions.py
   deps:
     - path: corpus/train/MM-la_perseus-ud-train.spacy
-      md5: 99afae06ef006d356e9aa9b32f236110
+      md5: c80eb61a8fdd64282562fd5000d7eedb
     - path: corpus/train/MM-la_proiel-ud-train.spacy
-      md5: 7c824e80fd74a4d6de05b76706fc1b62
+      md5: adf310c2eb3f667eca3e8b664e70e22f
     - path: corpus/train/MM-la_ittb-ud-train.spacy
-      md5: eee0be7521836322a80232ed1f8d6bf8
+      md5: 9b861a95068941a941612512ace73870
     - path: corpus/train/MM-la_llct-ud-train.spacy
-      md5: 29f2573ec51a18e89424b1572d0db19c
+      md5: 681488fb6d0781cdd04e0a92a0881df5
     - path: corpus/train/MM-la_udante-ud-train.spacy
-      md5: e52fbb5bb8c04a811037e9ea1c512d71
+      md5: b7831e3e1c3b44451849aa1877b0c1d5
     - path: corpus/dev/MM-la_proiel-ud-dev.spacy
-      md5: 9bbd030936f8b0c1c4d95e1ae3564cfa
+      md5: e36a9bb62af3cdaa26697cfc17fdfe07
     - path: corpus/dev/MM-la_ittb-ud-dev.spacy
-      md5: fea4bd3ccf349281e42619bf25ae3936
+      md5: e71c2872caf377519902bcc45e30f96e
     - path: corpus/dev/MM-la_llct-ud-dev.spacy
-      md5: cfdb182b3dc4d9a05b274d3c8a4da99a
+      md5: e1c4c57e2b0254cbc4e77789a5c5e739
     - path: corpus/dev/MM-la_udante-ud-dev.spacy
-      md5: d799cf9d08b615bd8a3f1c8ce578477b
+      md5: 1fc399c557b3d990b5f89501647ea364
     - path: configs/config_sm.cfg
-      md5: 0408ff0a7e517f2dfb0891faa8e97ed1
+      md5: 47da09f1e15f3d29febbd902f637f513
   outs:
     - path: training/sm/model-best
-      md5: abfe016b3a8302b7583df0321a7e73a3
+      md5: 1bf96b3a140f78e67146b7c68ff0f6c3
 train_md:
   cmd: python -m spacy run train_md
   script:
@@ -955,15 +961,15 @@ evaluate_sm:
   cmd: python -m weasel run evaluate_sm
   script:
     - python -m spacy evaluate  ./training/sm/lemma/model-best  ./corpus/test/ --output
-      ./metrics/la_core_web_sm_3.7.6.json  --code scripts/functions.py --gpu-id 0
+      ./metrics/la_core_web_sm_3.7.7.json  --code scripts/functions.py --gpu-id 0
   deps:
     - path: training/sm/lemma/model-best
-      md5: 0f7f714162531f58e918ed1d271ac18f
+      md5: bb8c8bb74aa44aa1948cd8daaa81c702
     - path: corpus/test/
       md5: 1617f9bc783472f7c816c0421c641709
   outs:
-    - path: metrics/la_core_web_sm_3.7.6.json
-      md5: 2135c4687e48f870422d1ef5ed89093b
+    - path: metrics/la_core_web_sm_3.7.7.json
+      md5: 55b25fca7b89bf13b9d76c0e1c2880dd
 evaluate_md:
   cmd: python -m weasel run evaluate_md
   script:
@@ -999,14 +1005,14 @@ train-ner_sm:
       100 --gpu-id 0 --code scripts/functions.py --initialize.vectors training/sm/model-best
   deps:
     - path: configs/ner_config_sm.cfg
-      md5: 80ae18a2b647dbfd817e2f3b6b30a78c
+      md5: 7742447e562b01c7f4c31407482b0ba9
     - path: corpus/ner/train
-      md5: 56484fdc31b44178aaea8946d4f33787
+      md5: 95d30fff25974dd6e50aeac21fed57f1
     - path: corpus/ner/dev
-      md5: 498f5dd53cb46daa763b9a4d93e1391c
+      md5: 700b25710a45e9fb1e8cb87f5099194c
   outs:
     - path: training/sm/ner/model-best
-      md5: 278ec25d2fcff830039b3bc2bfef8f3c
+      md5: a4d58b88aa3c718e85458899e8dddd94
 train-ner_md:
   cmd: python -m weasel run train-ner_md
   script:
@@ -1048,12 +1054,12 @@ assemble_sm:
       --code scripts/functions.py
   deps:
     - path: training/sm/model-best
-      md5: aea5f8f7a9b8a3a0de2bd387a0df0624
+      md5: 1bf96b3a140f78e67146b7c68ff0f6c3
   outs:
     - path: metrics/{vars.package_name}sm-{vars.package_version}.json
       md5: null
     - path: training/sm/model-assembled
-      md5: 3a464013b3ce4ee66ecfe8a1d8421c50
+      md5: aad13718f2912984700cbc74a42535d8
 assemble_md:
   cmd: python -m weasel run assemble_md
   script:
@@ -1197,30 +1203,30 @@ train-lemma_sm:
       --code scripts/functions.py
   deps:
     - path: corpus/lemma/train/MM-la_perseus-ud-train.spacy
-      md5: 99afae06ef006d356e9aa9b32f236110
+      md5: c80eb61a8fdd64282562fd5000d7eedb
     - path: corpus/lemma/train/MM-la_proiel-ud-train.spacy
-      md5: 7c824e80fd74a4d6de05b76706fc1b62
+      md5: adf310c2eb3f667eca3e8b664e70e22f
     - path: corpus/lemma/train/MM-la_ittb-ud-train.spacy
-      md5: eee0be7521836322a80232ed1f8d6bf8
+      md5: 9b861a95068941a941612512ace73870
     - path: corpus/lemma/train/MM-la_llct-ud-train.spacy
-      md5: 29f2573ec51a18e89424b1572d0db19c
+      md5: 681488fb6d0781cdd04e0a92a0881df5
     - path: corpus/lemma/train/MM-la_udante-ud-train.spacy
-      md5: e52fbb5bb8c04a811037e9ea1c512d71
+      md5: b7831e3e1c3b44451849aa1877b0c1d5
     - path: corpus/lemma/train/MM-la_lasla-xx-train.spacy
-      md5: 071591ce080ccd3691e764e235d90d22
+      md5: 83dfb93121d054f70b567d27fcc25c34
     - path: corpus/lemma/dev/MM-la_proiel-ud-dev.spacy
-      md5: 9bbd030936f8b0c1c4d95e1ae3564cfa
+      md5: e36a9bb62af3cdaa26697cfc17fdfe07
     - path: corpus/lemma/dev/MM-la_ittb-ud-dev.spacy
-      md5: fea4bd3ccf349281e42619bf25ae3936
+      md5: e71c2872caf377519902bcc45e30f96e
     - path: corpus/lemma/dev/MM-la_llct-ud-dev.spacy
-      md5: cfdb182b3dc4d9a05b274d3c8a4da99a
+      md5: e1c4c57e2b0254cbc4e77789a5c5e739
     - path: corpus/lemma/dev/MM-la_udante-ud-dev.spacy
-      md5: d799cf9d08b615bd8a3f1c8ce578477b
+      md5: 1fc399c557b3d990b5f89501647ea364
     - path: configs/lemma_config_sm.cfg
-      md5: c63b13f71778570032e15fde58f54e53
+      md5: dd2284ed2263e44a7419630da33bddb8
   outs:
     - path: training/sm/lemma/model-best
-      md5: a349150bd91ccadf31db19acc4bd044c
+      md5: bb8c8bb74aa44aa1948cd8daaa81c702
 train-lemma_md:
   cmd: python -m weasel run train-lemma_md
   script:

@@ -10,7 +10,8 @@
         "UD_Latin-ITTB (via Gamba/Zeman 2023)",
         "UD_Latin-LLCT (via Gamba/Zeman 2023",
         "UD_Latin-UDante (via Gamba/Zeman 2023)",
-        "CIRCSE/LASLA: LASLA Corpus"
+        "CIRCSE/LASLA: LASLA Corpus",
+        "UD_Latin-CIRCSE"
     ],
     "requirements":["spacy_lookups_data @ git+https://github.com/diyclassics/spacy-lookups-data.git#egg=spacy-lookups-data"]
 }

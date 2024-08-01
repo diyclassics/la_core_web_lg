@@ -98,11 +98,18 @@ nlp = spacy.load("la_core_web_lg")
     - https://huggingface.co/latincy
 
 ### Changelog
+- v3.7.7: Adds CIRCSE UD treebank to training data; fixes issue with sentence segmentation \[7.31.2024\]
 - v3.7.6: Adds lookups as requirement; updates metadata, etc. \[7.14.2024\]
 - v3.7.5: Replaces UD training data with "harmonized" treebanks (cf. [Gamba and Zeman 2023](https://github.com/fjambe/Latin-variability/tree/main)); introduces “backoff”-style Lookup Lemmatizer to catch large numbers of unambiguous forms (+850K); NB: uses a custom fork of spaCy’s `space-lookup-data`, cf. https://github.com/diyclassics/spacy-lookups-data/tree/master; support for Latin-specific verb tenses, i.e. `perf` (perfect) or `imp` (imperfect) as opposed to `past`; simplification and speed-up of LatinCy-specific UD preprocessing workflow. \[07.03.2024\]
 - v3.7.4: Retrain with release of spaCy v3.7.4 \[04.12.2023\]
 - v3.6.0: Retrain with release of spaCy v3.6.0 \[07.08.2023\]
 - v3.5.3: Add Verbform to morph labels; allows better handling of infinitives, gerunds, and gerundives \[6.22.2023\]
+
+### Training details
+- The v.3.7.7 models are trained using a single RTX8000 GPU with 32GB of memory.
+
+### Acknowledgements
+This work was supported in part through the NYU IT High Performance Computing resources, services, and staff expertise; for more information, see https://sites.google.com/nyu.edu/nyu-hpc/about/acknowledgement-statement.
 
 ### Bibliography
 - Cecchini, F.M., Passarotti, M., Marongiu, P., and Zeman, D. 2018. “Challenges in Converting the Index Thomisticus Treebank into Universal Dependencies.” In Proceedings of the Second Workshop on Universal Dependencies (UDW 2018). 27–36.
