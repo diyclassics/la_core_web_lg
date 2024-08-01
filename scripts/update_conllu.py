@@ -60,7 +60,7 @@ for file in tqdm(files):
                     token["form"] = token["form"].title()
                     break
             # PREPROCESS: Add final punctuation to Proiel metadata text
-            if "proi" in file or "lasl" in file:
+            if "proi" in file or "lasl" in file or "lila" in file:
                 sentence.metadata["text"] = f'{sentence.metadata["text"]}.'
             for token in sentence:
                 # PREPROCESS: Norms lemmas
@@ -73,7 +73,7 @@ for file in tqdm(files):
                 if token["deprel"] == "root":
                     last_root = token["id"]
             # PREPROCESS: Add final punctuation to Proiel sents
-            if "proi" in file:
+            if "proi" in file or "lila" in file:
                 sentence.append(
                     {
                         "id": last_token + 1,
@@ -106,7 +106,7 @@ for file in tqdm(files):
             else:
                 pass
             # Take out combined tokens; TODO: Learn to handle combined tokens in spaCy training
-            sentence = sentence.filter(id=lambda x: type(x) is int)
+            sentence = sentence.filter(id=lambda x: "-" not in str(x))
             sentence.metadata = metadata
             serialization.append(sentence.serialize())
     outfile = os.path.join(UPDATE_PATH, os.path.basename(file))

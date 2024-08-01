@@ -225,7 +225,7 @@ def update_xpos(treebank, token):
             token["xpos"] = udante_map.get(token["xpos"][0], "_")
         else:
             token["xpos"] = "_"
-    elif treebank == "lasla":
+    elif treebank == "lasla" or treebank == "circse":
         lasla_map = {
             "ADJ-C": "adjective",
             "ADJ-C1": "adjective",
@@ -463,6 +463,7 @@ def misc_fix(token):
 
 for file in tqdm(files):
     treebank = re.match(r".*preprocess/MM-la_(.*)-(ud|xx).*", file).group(1)
+    print(treebank)
     serialization = []
     print(f"Processing {file} to update features...")
     with open(file) as f:

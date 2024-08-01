@@ -1,5 +1,6 @@
 """Convert entity annotation from spaCy v2 TRAIN_DATA format to spaCy v3
 .spacy format."""
+
 import srsly
 import typer
 import warnings
@@ -10,11 +11,11 @@ from spacy.tokens import DocBin
 
 
 def convert(lang: str, input_path: Path, output_path: Path):
-    nlp = spacy.blank(lang)
+    nlp = spacy.load("la_core_web_lg")
     db = DocBin()
     for json in srsly.read_json(input_path):
         text = json["text"]
-        doc = nlp.make_doc(text)
+        doc = nlp(text)
         ents = []
         if json["spans"]:
             for span_json in json["spans"]:

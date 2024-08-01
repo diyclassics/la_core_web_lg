@@ -200,22 +200,20 @@ import string
 blank_nlp = spacy.blank("la")
 lookups = Lookups()
 
-try:
-    lookups_data = load_lookups(lang=blank_nlp.vocab.lang, tables=["lemma_lookup"])
-except:
-    lookups_data = lookups.from_disk("scripts/lemmatizer_lookups")
 
+lookups_data = load_lookups(lang=blank_nlp.vocab.lang, tables=["lemma_lookup"])
 LOOKUPS = lookups_data.get_table("lemma_lookup")
 
-predicted_lemma_getter = lambda token: token.lemma_
 Token.set_extension(
-    "predicted_lemma", getter=predicted_lemma_getter
+    "predicted_lemma", default=None, force=True
 )  # TODO: test that this works
 
 
 @Language.component(name="lookup_lemmatizer")
 def make_lookup_lemmatizer_function(doc):
     for token in doc:
+        token._.predicted_lemma = token.lemma_
+
         # Handle punctuation
         if token.text in string.punctuation:
             token.lemma_ = token.text
@@ -229,6 +227,7 @@ def make_lookup_lemmatizer_function(doc):
             token.lemma_ = token.text
 
         # Lookup lemmatizer
+
         token.lemma_ = LOOKUPS.get(token.text, token.lemma_)
 
         # Better handle capitalization
