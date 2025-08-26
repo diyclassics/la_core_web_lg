@@ -13,5 +13,7 @@
         "CIRCSE/LASLA: LASLA Corpus",
         "UD_Latin-CIRCSE"
     ],
-    "requirements":["spacy_lookups_data @ git+https://github.com/diyclassics/spacy-lookups-data.git#egg=spacy-lookups-data"]
+    "requirements":["spacy_lookups_data @ git+https://github.com/diyclassics/spacy-lookups-data.git#egg=spacy-lookups-data",
+                    "la-senter @ https://huggingface.co/latincy/la_senter/resolve/main/la_senter-3.8.0-py3-none-any.whl"
+    ]
 }
